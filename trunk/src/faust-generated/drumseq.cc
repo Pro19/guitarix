@@ -108,10 +108,10 @@ inline void Dsp::clear_state_f()
 	for (int l92 = 0; (l92 < 2); l92 = (l92 + 1)) fRec82[l92] = 0.0;
 }
 
-inline void Dsp::init(unsigned int sample_rate)
+inline void Dsp::init(unsigned int samplingFreq)
 {
-	fSampleRate = sample_rate;
-	fConst0 = std::min<double>(192000.0, std::max<double>(1.0, double(fSampleRate)));
+	fSamplingFreq = samplingFreq;
+	fConst0 = std::min<double>(192000.0, std::max<double>(1.0, double(fSamplingFreq)));
 	fConst1 = std::tan((3141.5926535897929 / fConst0));
 	fConst2 = (1.0 / fConst1);
 	fConst3 = (1.0 / (((fConst2 + 1.0000000000000004) / fConst1) + 1.0));
@@ -139,7 +139,7 @@ inline void Dsp::init(unsigned int sample_rate)
 	fConst25 = mydsp_faustpower2_f(fConst22);
 	fConst26 = (1.0 / fConst25);
 	fConst27 = (fConst23 + 1.0);
-	fConst28 = (1.0 / (fConst22 * fConst27));
+	fConst28 = (1.0 / (fConst27 * fConst22));
 	fConst29 = (0.0 - fConst28);
 	fConst30 = ((1.0 - fConst23) / fConst27);
 	fConst31 = (((fConst23 + -1.0000000000000004) / fConst22) + 1.0);
@@ -199,7 +199,7 @@ inline void Dsp::init(unsigned int sample_rate)
 	fConst85 = mydsp_faustpower2_f(fConst81);
 	fConst86 = (1.0 / fConst85);
 	fConst87 = (fConst82 + 1.0);
-	fConst88 = (1.0 / (fConst81 * fConst87));
+	fConst88 = (1.0 / (fConst87 * fConst81));
 	fConst89 = (0.0 - fConst88);
 	fConst90 = ((1.0 - fConst82) / fConst87);
 	fConst91 = (((fConst82 + -1.0000000000000004) / fConst81) + 1.0);
@@ -294,8 +294,8 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *outpu
 		double fTemp20 = (fSlow6 + (fRec25[1] + -1.0));
 		int iTemp21 = (fTemp20 < 0.0);
 		double fTemp22 = (fSlow6 + fRec25[1]);
-		fRec25[0] = (iTemp21 ? fTemp22 : fTemp20);
-		double fRec26 = (iTemp21 ? fTemp22 : (fSlow6 + (fRec25[1] + (fSlow7 * fTemp20))));
+		fRec25[0] = (iTemp21?fTemp22:fTemp20);
+		double fRec26 = (iTemp21?fTemp22:(fSlow6 + (fRec25[1] + (fSlow7 * fTemp20))));
 		fRec27[0] = ((fSlow10 * fRec28[1]) + (fSlow11 * fRec27[1]));
 		fRec28[0] = ((fTemp4 + (fSlow11 * fRec28[1])) - (fSlow10 * fRec27[1]));
 		double fTemp23 = (fConst9 * (((2.0 * fRec26) + (fSlow8 * fRec27[0])) + -1.0));
@@ -323,7 +323,7 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *outpu
 		fRec42[0] = ((fConst40 * fRec43[1]) + (fConst41 * fRec42[1]));
 		fRec43[0] = ((fTemp4 + (fConst41 * fRec43[1])) - (fConst40 * fRec42[1]));
 		fVec6[0] = 1600.0;
-		double fTemp32 = ((fConst18 * fVec6[1]) + fRec44[1]);
+		double fTemp32 = (fRec44[1] + (fConst18 * fVec6[1]));
 		fRec44[0] = (fTemp32 - std::floor(fTemp32));
 		double fTemp33 = mydsp_faustpower2_f(((2.0 * fRec44[0]) + -1.0));
 		fVec7[0] = fTemp33;
@@ -402,7 +402,7 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *outpu
 		fRec81[0] = (fSlow22 + (0.999 * fRec81[1]));
 		fRec82[0] = (fSlow23 + (0.999 * fRec82[1]));
 		double fTemp64 = (((2.0 * ((((fConst3 * (fRec1[0] * (fRec3[2] + (fRec3[0] + (2.0 * fRec3[1]))))) + ((fRec11[0] * (fRec13[2] + (fRec13[0] + (2.0 * fRec13[1])))) / fTemp15)) * std::pow(10.0, (0.050000000000000003 * fRec19[0]))) + (((0.25 * (fRec21[0] * ((5.0 * fRec23[0]) + (0.5 * (fRec29[0] + fRec31[0]))))) + (3.0 * fRec34[0])) * std::pow(10.0, (0.050000000000000003 * fRec35[0]))))) + ((((fRec37[0] * (fRec39[0] - fRec39[2])) + ((std::sqrt(fRec59[0]) * (((fRec60[1] * (0.0 - (2.0 / fTemp55))) + (fRec60[0] / fTemp55)) + (fRec60[2] / fTemp55))) / fTemp56)) * std::pow(10.0, (0.050000000000000003 * fRec63[0]))) + ((((fRec65[0] * (fRec67[0] + 0.25)) + (fRec70[0] * (fRec71[0] + 0.25))) + (0.20000000000000001 * ((fConst75 * (fRec74[0] * (fRec75[2] + (fRec75[0] + (2.0 * fRec75[1]))))) + (fConst83 * (fRec78[0] * (((fConst86 * fRec79[0]) + (fConst93 * fRec79[1])) + (fConst86 * fRec79[2]))))))) * std::pow(10.0, (0.050000000000000003 * fRec81[0]))))) * std::pow(10.0, (0.050000000000000003 * fRec82[0])));
-		output0[i] = FAUSTFLOAT((iSlow0 ? fTemp64 : (double(input0[i]) + fTemp64)));
+		output0[i] = FAUSTFLOAT((iSlow0?fTemp64:(fTemp64 + double(input0[i]))));
 		fVec0[1] = fVec0[0];
 		iVec1[1] = iVec1[0];
 		fRec2[1] = fRec2[0];

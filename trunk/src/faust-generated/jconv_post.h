@@ -7,7 +7,7 @@ namespace jconv_post {
 
 class Dsp {
 private:
-	int fSampleRate;
+	int fSamplingFreq;
 	FAUSTFLOAT fVslider0;
 	FAUSTFLOAT	*fVslider0_;
 	float fRec0[2];
@@ -30,7 +30,7 @@ private:
 public:
 	void clear_state_f();
 	int activate(bool start);
-	void init(unsigned int sample_rate);
+	void init(unsigned int samplingFreq);
 	void compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input1, FAUSTFLOAT *input2, FAUSTFLOAT *input3, FAUSTFLOAT *output0, FAUSTFLOAT *output1);
 	int register_par(const ParamReg& reg);
 	Dsp();

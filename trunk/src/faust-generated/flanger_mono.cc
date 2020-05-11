@@ -6,7 +6,7 @@ namespace flanger_mono {
 
 class Dsp: public PluginDef {
 private:
-	int fSampleRate;
+	int fSamplingFreq;
 	FAUSTFLOAT fVslider0;
 	FAUSTFLOAT fHslider0;
 	int iVec0[2];
@@ -22,13 +22,13 @@ private:
 	void clear_state_f();
 	int load_ui_f(const UiBuilder& b, int form);
 	static const char *glade_def;
-	void init(unsigned int sample_rate);
+	void init(unsigned int samplingFreq);
 	void compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0);
 	int register_par(const ParamReg& reg);
 
 	static void clear_state_f_static(PluginDef*);
 	static int load_ui_f_static(const UiBuilder& b, int form);
-	static void init_static(unsigned int sample_rate, PluginDef*);
+	static void init_static(unsigned int samplingFreq, PluginDef*);
 	static void compute_static(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0, PluginDef*);
 	static int register_params_static(const ParamReg& reg);
 	static void del_instance(PluginDef *p);
@@ -76,25 +76,25 @@ void Dsp::clear_state_f_static(PluginDef *p)
 	static_cast<Dsp*>(p)->clear_state_f();
 }
 
-inline void Dsp::init(unsigned int sample_rate)
+inline void Dsp::init(unsigned int samplingFreq)
 {
-	fSampleRate = sample_rate;
-	fConst0 = std::min<double>(192000.0, std::max<double>(1.0, double(fSampleRate)));
+	fSamplingFreq = samplingFreq;
+	fConst0 = std::min<double>(192000.0, std::max<double>(1.0, double(fSamplingFreq)));
 	fConst1 = (0.10471975511965977 / fConst0);
 	IOTA = 0;
 	clear_state_f();
 }
 
-void Dsp::init_static(unsigned int sample_rate, PluginDef *p)
+void Dsp::init_static(unsigned int samplingFreq, PluginDef *p)
 {
-	static_cast<Dsp*>(p)->init(sample_rate);
+	static_cast<Dsp*>(p)->init(samplingFreq);
 }
 
 void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0)
 {
 	double fSlow0 = double(fVslider0);
 	double fSlow1 = (1.0 - (0.01 * fSlow0));
-	double fSlow2 = (0.01 * (fSlow0 * std::pow(10.0, (0.050000000000000003 * double(fHslider0)))));
+	double fSlow2 = (0.01 * (std::pow(10.0, (0.050000000000000003 * double(fHslider0))) * fSlow0));
 	double fSlow3 = (fConst1 * double(fHslider1));
 	double fSlow4 = std::sin(fSlow3);
 	double fSlow5 = std::cos(fSlow3);

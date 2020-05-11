@@ -6,7 +6,7 @@ namespace gx_outputlevel_ladspa {
 
 class Dsp: public PluginLV2 {
 private:
-	uint32_t fSampleRate;
+	uint32_t fSamplingFreq;
 	FAUSTFLOAT fVslider0;
 	FAUSTFLOAT	*fVslider0_;
 	FAUSTFLOAT fVslider1;
@@ -15,11 +15,11 @@ private:
 
 	void connect(uint32_t port,void* data);
 	void clear_state_f();
-	void init(uint32_t sample_rate);
+	void init(uint32_t samplingFreq);
 	void compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input1, FAUSTFLOAT *output0, FAUSTFLOAT *output1);
 
 	static void clear_state_f_static(PluginLV2*);
-	static void init_static(uint32_t sample_rate, PluginLV2*);
+	static void init_static(uint32_t samplingFreq, PluginLV2*);
 	static void compute_static(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input1, FAUSTFLOAT *output0, FAUSTFLOAT *output1, PluginLV2*);
 	static void del_instance(PluginLV2 *p);
 	static void connect_static(uint32_t port,void* data, PluginLV2 *p);
@@ -62,15 +62,15 @@ void Dsp::clear_state_f_static(PluginLV2 *p)
 	static_cast<Dsp*>(p)->clear_state_f();
 }
 
-inline void Dsp::init(uint32_t sample_rate)
+inline void Dsp::init(uint32_t samplingFreq)
 {
-	fSampleRate = sample_rate;
+	fSamplingFreq = samplingFreq;
 	clear_state_f();
 }
 
-void Dsp::init_static(uint32_t sample_rate, PluginLV2 *p)
+void Dsp::init_static(uint32_t samplingFreq, PluginLV2 *p)
 {
-	static_cast<Dsp*>(p)->init(sample_rate);
+	static_cast<Dsp*>(p)->init(samplingFreq);
 }
 
 void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input1, FAUSTFLOAT *output0, FAUSTFLOAT *output1)
@@ -80,8 +80,8 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input
 	double fSlow0 = (0.0010000000000000009 * std::pow(10.0, (0.050000000000000003 * (double(fVslider0) + double(fVslider1)))));
 	for (int i = 0; (i < count); i = (i + 1)) {
 		fRec0[0] = (fSlow0 + (0.999 * fRec0[1]));
-		output0[i] = FAUSTFLOAT((double(input0[i]) * fRec0[0]));
-		output1[i] = FAUSTFLOAT((double(input1[i]) * fRec0[0]));
+		output0[i] = FAUSTFLOAT((fRec0[0] * double(input0[i])));
+		output1[i] = FAUSTFLOAT((fRec0[0] * double(input1[i])));
 		fRec0[1] = fRec0[0];
 	}
 #undef fVslider0
@@ -99,10 +99,10 @@ void Dsp::connect(uint32_t port,void* data)
 	switch ((PortIndex)port)
 	{
 	case OUT_MASTER: 
-		fVslider1_ = (float*)data; // , 0.0, -50.0, 4.0, 0.10000000000000001 
+		fVslider0_ = (float*)data; // , 0.0, -50.0, 4.0, 0.10000000000000001 
 		break;
 	case OUT_MASTER_LADSPA: 
-		fVslider0_ = (float*)data; // , 0.0, -20.0, 20.0, 0.10000000000000001 
+		fVslider1_ = (float*)data; // , 0.0, -20.0, 20.0, 0.10000000000000001 
 		break;
 	default:
 		break;

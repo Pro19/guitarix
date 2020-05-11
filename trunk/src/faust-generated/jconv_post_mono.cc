@@ -16,9 +16,9 @@ inline void Dsp::clear_state_f()
 	for (int l0 = 0; (l0 < 2); l0 = (l0 + 1)) fRec0[l0] = 0.0;
 }
 
-inline void Dsp::init(unsigned int sample_rate)
+inline void Dsp::init(unsigned int samplingFreq)
 {
-	fSampleRate = sample_rate;
+	fSamplingFreq = samplingFreq;
 	clear_state_f();
 }
 
@@ -29,7 +29,7 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input
 	double fSlow2 = (0.0010000000000000009 * std::pow(10.0, (0.050000000000000003 * double(fVslider1))));
 	for (int i = 0; (i < count); i = (i + 1)) {
 		fRec0[0] = (fSlow2 + (0.999 * fRec0[1]));
-		output0[i] = FAUSTFLOAT(((fSlow1 * double(input0[i])) + (fSlow0 * (double(input1[i]) * fRec0[0]))));
+		output0[i] = FAUSTFLOAT(((fSlow1 * double(input0[i])) + (fSlow0 * (fRec0[0] * double(input1[i])))));
 		fRec0[1] = fRec0[0];
 	}
 }

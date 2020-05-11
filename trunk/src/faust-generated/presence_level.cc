@@ -11,16 +11,16 @@ Dsp::Dsp() {
 Dsp::~Dsp() {
 }
 
-inline void Dsp::init(unsigned int sample_rate)
+inline void Dsp::init(unsigned int samplingFreq)
 {
-	fSampleRate = sample_rate;
+	fSamplingFreq = samplingFreq;
 }
 
 void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0)
 {
 #define fVslider0 (*fVslider0_)
 	double fSlow0 = double(fVslider0);
-	double fSlow1 = (fSlow0 * std::pow(10.0, (0.0 - (0.10000000000000001 * fSlow0))));
+	double fSlow1 = (std::pow(10.0, (0.0 - (0.10000000000000001 * fSlow0))) * fSlow0);
 	for (int i = 0; (i < count); i = (i + 1)) {
 		output0[i] = FAUSTFLOAT((fSlow1 * double(input0[i])));
 	}

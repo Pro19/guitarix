@@ -7,7 +7,7 @@ namespace drumseq {
 
 class Dsp {
 private:
-	int fSampleRate;
+	int fSamplingFreq;
 	FAUSTFLOAT fCheckbox0;
 	FAUSTFLOAT	*fCheckbox0_;
 	double fConst0;
@@ -218,7 +218,7 @@ private:
 
 public:
 	void clear_state_f();
-	void init(unsigned int sample_rate);
+	void init(unsigned int samplingFreq);
 	void compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0);
 	int register_par(const ParamReg& reg);
 	Dsp();

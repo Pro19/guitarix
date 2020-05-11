@@ -6,7 +6,7 @@ namespace panoram_enhancer {
 
 class Dsp: public PluginDef {
 private:
-	int fSampleRate;
+	int fSamplingFreq;
 	double fConst0;
 	double fConst1;
 	double fConst2;
@@ -111,13 +111,13 @@ private:
 	void clear_state_f();
 	int load_ui_f(const UiBuilder& b, int form);
 	static const char *glade_def;
-	void init(unsigned int sample_rate);
+	void init(unsigned int samplingFreq);
 	void compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input1, FAUSTFLOAT *output0, FAUSTFLOAT *output1);
 	int register_par(const ParamReg& reg);
 
 	static void clear_state_f_static(PluginDef*);
 	static int load_ui_f_static(const UiBuilder& b, int form);
-	static void init_static(unsigned int sample_rate, PluginDef*);
+	static void init_static(unsigned int samplingFreq, PluginDef*);
 	static void compute_static(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input1, FAUSTFLOAT *output0, FAUSTFLOAT *output1, PluginDef*);
 	static int register_params_static(const ParamReg& reg);
 	static void del_instance(PluginDef *p);
@@ -201,10 +201,10 @@ void Dsp::clear_state_f_static(PluginDef *p)
 	static_cast<Dsp*>(p)->clear_state_f();
 }
 
-inline void Dsp::init(unsigned int sample_rate)
+inline void Dsp::init(unsigned int samplingFreq)
 {
-	fSampleRate = sample_rate;
-	fConst0 = std::min<double>(192000.0, std::max<double>(1.0, double(fSampleRate)));
+	fSamplingFreq = samplingFreq;
+	fConst0 = std::min<double>(192000.0, std::max<double>(1.0, double(fSamplingFreq)));
 	fConst1 = std::tan((11309.733552923255 / fConst0));
 	fConst2 = (1.0 / fConst1);
 	fConst3 = (1.0 / (((fConst2 + 0.51763809020504126) / fConst1) + 1.0));
@@ -264,9 +264,9 @@ inline void Dsp::init(unsigned int sample_rate)
 	clear_state_f();
 }
 
-void Dsp::init_static(unsigned int sample_rate, PluginDef *p)
+void Dsp::init_static(unsigned int samplingFreq, PluginDef *p)
 {
-	static_cast<Dsp*>(p)->init(sample_rate);
+	static_cast<Dsp*>(p)->init(samplingFreq);
 }
 
 void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input1, FAUSTFLOAT *output0, FAUSTFLOAT *output1)
@@ -367,7 +367,7 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input
 		fRec13[0] = ((fConst41 * (fRec14[2] + (fRec14[0] + (2.0 * fRec14[1])))) - (fConst40 * ((fConst48 * fRec13[2]) + (fConst46 * fRec13[1]))));
 		double fTemp14 = double(input1[i]);
 		fVec1[(IOTA & 131071)] = fTemp14;
-		fRec20[0] = ((0.5 * (fTemp0 + fTemp14)) - (fConst50 * ((fConst51 * fRec20[2]) + (fConst15 * fRec20[1]))));
+		fRec20[0] = ((0.5 * (fTemp14 + fTemp0)) - (fConst50 * ((fConst51 * fRec20[2]) + (fConst15 * fRec20[1]))));
 		fRec19[0] = ((fConst50 * (fRec20[2] + (fRec20[0] + (2.0 * fRec20[1])))) - (fConst49 * ((fConst52 * fRec19[2]) + (fConst15 * fRec19[1]))));
 		double fTemp15 = (fConst49 * (fRec19[2] + (fRec19[0] + (2.0 * fRec19[1]))));
 		output0[i] = FAUSTFLOAT(((((fSlow1 * (fRec0[2] + (fRec0[0] + (2.0 * fRec0[1])))) + (fSlow4 * (fRec7[2] + (fRec7[0] + (2.0 * fRec7[1]))))) + (fSlow6 * (fRec13[2] + (fRec13[0] + (2.0 * fRec13[1]))))) + fTemp15));

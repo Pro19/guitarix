@@ -6,7 +6,7 @@ namespace lowpass_down {
 
 class Dsp: public PluginLV2 {
 private:
-	uint32_t fSampleRate;
+	uint32_t fSamplingFreq;
 	double fConst0;
 	double fConst1;
 	double fConst2;
@@ -29,11 +29,11 @@ private:
 
 	void connect(uint32_t port,void* data);
 	void clear_state_f();
-	void init(uint32_t sample_rate);
+	void init(uint32_t samplingFreq);
 	void compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0);
 
 	static void clear_state_f_static(PluginLV2*);
-	static void init_static(uint32_t sample_rate, PluginLV2*);
+	static void init_static(uint32_t samplingFreq, PluginLV2*);
 	static void compute_static(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0, PluginLV2*);
 	static void del_instance(PluginLV2 *p);
 	static void connect_static(uint32_t port,void* data, PluginLV2 *p);
@@ -76,15 +76,15 @@ void Dsp::clear_state_f_static(PluginLV2 *p)
 	static_cast<Dsp*>(p)->clear_state_f();
 }
 
-inline void Dsp::init(uint32_t sample_rate)
+inline void Dsp::init(uint32_t samplingFreq)
 {
-	fSampleRate = sample_rate;
-	fConst0 = std::min<double>(192000.0, std::max<double>(1.0, double(fSampleRate)));
+	fSamplingFreq = samplingFreq;
+	fConst0 = std::min<double>(192000.0, std::max<double>(1.0, double(fSamplingFreq)));
 	fConst1 = (1.0 / fConst0);
 	fConst2 = std::tan((251.32741228718345 / fConst0));
 	fConst3 = (1.0 / fConst2);
 	fConst4 = (fConst3 + 1.0);
-	fConst5 = (0.0 - (1.0 / (fConst2 * fConst4)));
+	fConst5 = (0.0 - (1.0 / (fConst4 * fConst2)));
 	fConst6 = (1.0 / std::tan((17690.308232364125 / fConst0)));
 	fConst7 = (1.0 / (fConst6 + 1.0));
 	fConst8 = (1.0 - fConst6);
@@ -93,9 +93,9 @@ inline void Dsp::init(uint32_t sample_rate)
 	clear_state_f();
 }
 
-void Dsp::init_static(uint32_t sample_rate, PluginLV2 *p)
+void Dsp::init_static(uint32_t samplingFreq, PluginLV2 *p)
 {
-	static_cast<Dsp*>(p)->init(sample_rate);
+	static_cast<Dsp*>(p)->init(samplingFreq);
 }
 
 void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0)
@@ -105,12 +105,12 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *outpu
 		int iTemp0 = (iRec1[1] < 4096);
 		double fTemp1 = double(input0[i]);
 		fVec0[0] = fTemp1;
-		fRec4[0] = (0.0 - (fConst7 * ((fConst8 * fRec4[1]) - (fTemp1 + fVec0[1]))));
+		fRec4[0] = (0.0 - (fConst7 * ((fConst8 * fRec4[1]) - (fVec0[1] + fTemp1))));
 		fRec3[0] = ((fConst5 * fRec4[1]) - (fConst9 * ((fConst10 * fRec3[1]) - (fConst3 * fRec4[0]))));
 		double fTemp2 = std::max<double>(fConst1, std::fabs(fRec3[0]));
-		fRec0[0] = (iTemp0 ? (fTemp2 + fRec0[1]) : fTemp2);
-		iRec1[0] = (iTemp0 ? (iRec1[1] + 1) : 1);
-		fRec2[0] = (iTemp0 ? fRec2[1] : (0.000244140625 * fRec0[1]));
+		fRec0[0] = (iTemp0?(fTemp2 + fRec0[1]):fTemp2);
+		iRec1[0] = (iTemp0?(iRec1[1] + 1):1);
+		fRec2[0] = (iTemp0?fRec2[1]:(0.000244140625 * fRec0[1]));
 		fVbargraph0 = FAUSTFLOAT(fRec2[0]);
 		output0[i] = FAUSTFLOAT(fRec3[0]);
 		fVec0[1] = fVec0[0];

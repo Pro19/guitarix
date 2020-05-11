@@ -6,7 +6,7 @@ namespace bitdowner {
 
 class Dsp: public PluginDef {
 private:
-	int fSampleRate;
+	int fSamplingFreq;
 	FAUSTFLOAT fVslider0;
 	double fRec0[2];
 	FAUSTFLOAT fVslider1;
@@ -19,13 +19,13 @@ private:
 	void clear_state_f();
 	int load_ui_f(const UiBuilder& b, int form);
 	static const char *glade_def;
-	void init(unsigned int sample_rate);
+	void init(unsigned int samplingFreq);
 	void compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0);
 	int register_par(const ParamReg& reg);
 
 	static void clear_state_f_static(PluginDef*);
 	static int load_ui_f_static(const UiBuilder& b, int form);
-	static void init_static(unsigned int sample_rate, PluginDef*);
+	static void init_static(unsigned int samplingFreq, PluginDef*);
 	static void compute_static(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0, PluginDef*);
 	static int register_params_static(const ParamReg& reg);
 	static void del_instance(PluginDef *p);
@@ -72,15 +72,15 @@ void Dsp::clear_state_f_static(PluginDef *p)
 	static_cast<Dsp*>(p)->clear_state_f();
 }
 
-inline void Dsp::init(unsigned int sample_rate)
+inline void Dsp::init(unsigned int samplingFreq)
 {
-	fSampleRate = sample_rate;
+	fSamplingFreq = samplingFreq;
 	clear_state_f();
 }
 
-void Dsp::init_static(unsigned int sample_rate, PluginDef *p)
+void Dsp::init_static(unsigned int samplingFreq, PluginDef *p)
 {
-	static_cast<Dsp*>(p)->init(sample_rate);
+	static_cast<Dsp*>(p)->init(samplingFreq);
 }
 
 void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0)
@@ -95,11 +95,11 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *outpu
 	for (int i = 0; (i < count); i = (i + 1)) {
 		fRec0[0] = (fSlow0 + (0.999 * fRec0[1]));
 		fRec1[0] = (fSlow5 + (0.999 * fRec1[1]));
-		double fTemp0 = (fSlow4 * std::floor((fSlow3 * (double(input0[i]) * fRec1[0]))));
-		double fTemp1 = ((fTemp0 > 1.0) ? 1.0 : ((fTemp0 < -1.0) ? -1.0 : fTemp0));
-		iRec3[0] = ((iRec3[1] < iSlow6) ? (iRec3[1] + 1) : 0);
-		fRec2[0] = ((iRec3[0] == 0) ? fTemp1 : fRec2[1]);
-		output0[i] = FAUSTFLOAT((fRec0[0] * (iSlow2 ? fRec2[0] : fTemp1)));
+		double fTemp0 = (fSlow4 * std::floor((fSlow3 * (fRec1[0] * double(input0[i])))));
+		double fTemp1 = ((fTemp0 > 1.0)?1.0:((fTemp0 < -1.0)?-1.0:fTemp0));
+		iRec3[0] = ((iRec3[1] < iSlow6)?(iRec3[1] + 1):0);
+		fRec2[0] = ((iRec3[0] == 0)?fTemp1:fRec2[1]);
+		output0[i] = FAUSTFLOAT((fRec0[0] * (iSlow2?fRec2[0]:fTemp1)));
 		fRec0[1] = fRec0[0];
 		fRec1[1] = fRec1[0];
 		iRec3[1] = iRec3[0];

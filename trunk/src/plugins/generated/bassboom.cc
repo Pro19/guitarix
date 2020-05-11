@@ -9,7 +9,7 @@ namespace bassboom {
 
 class Dsp: public PluginDef {
 private:
-	int fSampleRate;
+	int fSamplingFreq;
 	FAUSTFLOAT fVslider0;
 	int iVec0[2];
 	double fRec0[2];
@@ -37,13 +37,13 @@ private:
 	void clear_state_f();
 	int load_ui_f(const UiBuilder& b, int form);
 	static const char *glade_def;
-	void init(unsigned int sample_rate);
+	void init(unsigned int samplingFreq);
 	void compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0);
 	int register_par(const ParamReg& reg);
 
 	static void clear_state_f_static(PluginDef*);
 	static int load_ui_f_static(const UiBuilder& b, int form);
-	static void init_static(unsigned int sample_rate, PluginDef*);
+	static void init_static(unsigned int samplingFreq, PluginDef*);
 	static void compute_static(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0, PluginDef*);
 	static int register_params_static(const ParamReg& reg);
 	static void del_instance(PluginDef *p);
@@ -95,16 +95,16 @@ void Dsp::clear_state_f_static(PluginDef *p)
 	static_cast<Dsp*>(p)->clear_state_f();
 }
 
-inline void Dsp::init(unsigned int sample_rate)
+inline void Dsp::init(unsigned int samplingFreq)
 {
-	fSampleRate = sample_rate;
-	fConst0 = std::tan((345.57519189487726 / std::min<double>(192000.0, std::max<double>(1.0, double(fSampleRate)))));
+	fSamplingFreq = samplingFreq;
+	fConst0 = std::tan((345.57519189487726 / std::min<double>(192000.0, std::max<double>(1.0, double(fSamplingFreq)))));
 	fConst1 = (1.0 / fConst0);
 	fConst2 = (1.0 / (((fConst1 + 1.0000000000000004) / fConst0) + 1.0));
 	fConst3 = mydsp_faustpower2_f(fConst0);
 	fConst4 = (1.0 / fConst3);
 	fConst5 = (fConst1 + 1.0);
-	fConst6 = (0.0 - (1.0 / (fConst0 * fConst5)));
+	fConst6 = (0.0 - (1.0 / (fConst5 * fConst0)));
 	fConst7 = (1.0 / fConst5);
 	fConst8 = (1.0 - fConst1);
 	fConst9 = (((fConst1 + -1.0000000000000004) / fConst0) + 1.0);
@@ -113,9 +113,9 @@ inline void Dsp::init(unsigned int sample_rate)
 	clear_state_f();
 }
 
-void Dsp::init_static(unsigned int sample_rate, PluginDef *p)
+void Dsp::init_static(unsigned int samplingFreq, PluginDef *p)
 {
-	static_cast<Dsp*>(p)->init(sample_rate);
+	static_cast<Dsp*>(p)->init(samplingFreq);
 }
 
 void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0)
@@ -126,7 +126,7 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *outpu
 		iVec0[0] = 1;
 		fRec0[0] = (fSlow0 + (0.999 * fRec0[1]));
 		fRec3[0] = ((9.9999999999999995e-21 * double((1 - iVec0[1]))) - fRec3[1]);
-		double fTemp0 = (double(input0[i]) + fRec3[0]);
+		double fTemp0 = (fRec3[0] + double(input0[i]));
 		fVec1[0] = fTemp0;
 		fRec2[0] = ((fConst6 * fVec1[1]) - (fConst7 * ((fConst8 * fRec2[1]) - (fConst1 * fTemp0))));
 		fRec1[0] = (fRec2[0] - (fConst2 * ((fConst9 * fRec1[2]) + (fConst10 * fRec1[1]))));

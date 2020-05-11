@@ -9,7 +9,7 @@ static int iVec0[2];
 static double fRec2[2];
 static double fRec1[2];
 static double fRec0[2];
-static int	fSampleRate;
+static int	fSamplingFreq;
 
 static void clear_state_f(PluginDef* = 0)
 {
@@ -19,10 +19,10 @@ static void clear_state_f(PluginDef* = 0)
 	for (int l3 = 0; (l3 < 2); l3 = (l3 + 1)) fRec0[l3] = 0.0;
 }
 
-static void init(unsigned int sample_rate, PluginDef* = 0)
+static void init(unsigned int samplingFreq, PluginDef* = 0)
 {
-	fSampleRate = sample_rate;
-	fConst0 = (100.53096491487338 / std::min<double>(192000.0, std::max<double>(1.0, double(fSampleRate))));
+	fSamplingFreq = samplingFreq;
+	fConst0 = (100.53096491487338 / std::min<double>(192000.0, std::max<double>(1.0, double(fSamplingFreq))));
 	clear_state_f();
 }
 

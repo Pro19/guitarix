@@ -6,7 +6,7 @@ namespace compressor {
 
 class Dsp: public PluginDef {
 private:
-	int fSampleRate;
+	int fSamplingFreq;
 	double fConst0;
 	double fConst1;
 	FAUSTFLOAT fEntry0;
@@ -26,13 +26,13 @@ private:
 	void clear_state_f();
 	int load_ui_f(const UiBuilder& b, int form);
 	static const char *glade_def;
-	void init(unsigned int sample_rate);
+	void init(unsigned int samplingFreq);
 	void compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0);
 	int register_par(const ParamReg& reg);
 
 	static void clear_state_f_static(PluginDef*);
 	static int load_ui_f_static(const UiBuilder& b, int form);
-	static void init_static(unsigned int sample_rate, PluginDef*);
+	static void init_static(unsigned int samplingFreq, PluginDef*);
 	static void compute_static(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0, PluginDef*);
 	static int register_params_static(const ParamReg& reg);
 	static void del_instance(PluginDef *p);
@@ -80,19 +80,19 @@ void Dsp::clear_state_f_static(PluginDef *p)
 	static_cast<Dsp*>(p)->clear_state_f();
 }
 
-inline void Dsp::init(unsigned int sample_rate)
+inline void Dsp::init(unsigned int samplingFreq)
 {
-	fSampleRate = sample_rate;
-	fConst0 = std::min<double>(192000.0, std::max<double>(1.0, double(fSampleRate)));
+	fSamplingFreq = samplingFreq;
+	fConst0 = std::min<double>(192000.0, std::max<double>(1.0, double(fSamplingFreq)));
 	fConst1 = (1.0 / fConst0);
 	fConst2 = std::exp((0.0 - (10.0 / fConst0)));
 	fConst3 = (1.0 - fConst2);
 	clear_state_f();
 }
 
-void Dsp::init_static(unsigned int sample_rate, PluginDef *p)
+void Dsp::init_static(unsigned int samplingFreq, PluginDef *p)
 {
-	static_cast<Dsp*>(p)->init(sample_rate);
+	static_cast<Dsp*>(p)->init(samplingFreq);
 }
 
 void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0)
@@ -104,20 +104,20 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *outpu
 	double fSlow4 = double(fEntry2);
 	double fSlow5 = (1.0 / (fSlow1 + 0.001));
 	for (int i = 0; (i < count); i = (i + 1)) {
-		double fTemp0 = double(input0[i]);
-		int iTemp1 = (iRec1[1] < 2048);
-		fRec4[0] = ((fConst2 * fRec4[1]) + (fConst3 * std::fabs((fTemp0 + 9.9999999999999995e-21))));
+		int iTemp0 = (iRec1[1] < 2048);
+		double fTemp1 = double(input0[i]);
+		fRec4[0] = ((fConst2 * fRec4[1]) + (fConst3 * std::fabs((fTemp1 + 9.9999999999999995e-21))));
 		double fTemp2 = ((fSlow2 * double((fRec3[1] < fRec4[0]))) + (fSlow3 * double((fRec3[1] >= fRec4[0]))));
 		fRec3[0] = ((fRec3[1] * fTemp2) + (fRec4[0] * (1.0 - fTemp2)));
 		double fTemp3 = std::max<double>(0.0, (fSlow1 + ((20.0 * std::log10(fRec3[0])) - fSlow4)));
 		double fTemp4 = std::min<double>(1.0, std::max<double>(0.0, (fSlow5 * fTemp3)));
 		double fTemp5 = (fSlow0 * ((fTemp3 * fTemp4) / (1.0 - (fSlow0 * fTemp4))));
 		double fTemp6 = std::max<double>(fConst1, std::fabs(fTemp5));
-		fRec0[0] = (iTemp1 ? (fTemp6 + fRec0[1]) : fTemp6);
-		iRec1[0] = (iTemp1 ? (iRec1[1] + 1) : 1);
-		fRec2[0] = (iTemp1 ? fRec2[1] : (0.00048828125 * fRec0[1]));
+		fRec0[0] = (iTemp0?(fTemp6 + fRec0[1]):fTemp6);
+		iRec1[0] = (iTemp0?(iRec1[1] + 1):1);
+		fRec2[0] = (iTemp0?fRec2[1]:(0.00048828125 * fRec0[1]));
 		fVbargraph0 = FAUSTFLOAT(fRec2[0]);
-		output0[i] = FAUSTFLOAT((fTemp0 * std::pow(10.0, (0.050000000000000003 * fTemp5))));
+		output0[i] = FAUSTFLOAT((std::pow(10.0, (0.050000000000000003 * fTemp5)) * fTemp1));
 		fRec4[1] = fRec4[0];
 		fRec3[1] = fRec3[0];
 		fRec0[1] = fRec0[0];

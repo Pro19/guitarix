@@ -76,9 +76,150 @@ head4 = de.sdelay(N, interp, dtime4):*(checkbox("Head4")) with {
  	N = int( 2^19 ) ;
 };
 
-// IN real machine the ECHO level control is after the last 2 stages of valves
-machine = vgroup( "Tape Heads", fi.highpass( 4, 40 )<:head1,head2,head3:>fi.lowpass( 1, 6500 ):fi.dcblocker:*(echo) );
 
-fbloop = fi.lowpass( 1, 7500 ):*(feedback):*(0.5):fi.highpass( 1, 125 )  ;
+input = pre : fi.iir((b0/a0,b1/a0,b2/a0),(a1/a0,a2/a0)) : copicat1clip with {
+    LogPot(a, x) = ba.if(a, (exp(a * x) - 1) / (exp(a) - 1), x);
+    Inverted(b, x) = ba.if(b, 1 - x, x);
+    s = 0.993;
+    fs = float(ma.SR);
+    pre = _;
 
-process = input12au7<:_,(+:_<:machine :>_)~fbloop:>output12au7:*(0.1) ;
+
+    Input = vslider("Input[name:Input]", 0.5, 0, 1, 0.01) : Inverted(0) : LogPot(3) : si.smooth(s);
+
+    b0 = Input*fs*(-2.06740841499587e-8*fs - 5.51308910665569e-7);
+
+    b1 = 4.13481682999174e-8*Input*pow(fs,2);
+
+    b2 = Input*fs*(-2.06740841499587e-8*fs + 5.51308910665569e-7);
+
+    a0 = Input*(Input*fs*(-7.83789728824443e-11*fs - 3.13458049067171e-9) + fs*(8.32844278169955e-11*fs + 5.0418669893366e-9) + 6.26916098134342e-8) + fs*(4.11425073415965e-10*fs + 2.49068229273233e-8) + 3.09696552478371e-7;
+
+    a1 = Input*(1.56757945764889e-10*Input*pow(fs,2) - 1.66568855633991e-10*pow(fs,2) + 1.25383219626868e-7) - 8.22850146831931e-10*pow(fs,2) + 6.19393104956741e-7;
+
+    a2 = Input*(Input*fs*(-7.83789728824443e-11*fs + 3.13458049067171e-9) + fs*(8.32844278169955e-11*fs - 5.0418669893366e-9) + 6.26916098134342e-8) + fs*(4.11425073415965e-10*fs - 2.49068229273233e-8) + 3.09696552478371e-7;
+};
+
+copicat1clip = _<: ba.if(signbit(_), copicat1_neg_clip, copicat1_clip) :>_ with {
+
+    signbit = ffunction(int signbit(float), "math.h", "");
+
+    copicat1_clip = ffunction(float copicat1clip(float), "copicat1_table.h", "");
+
+    copicat1_neg_clip = ffunction(float copicat1_negclip(float), "copicat1_neg_table.h", "");
+
+};
+record = pre : fi.iir((b0/a0,b1/a0,b2/a0,b3/a0),(a1/a0,a2/a0,a3/a0)) : copicatrecord_2clip with {
+    LogPot(a, x) = ba.if(a, (exp(a * x) - 1) / (exp(a) - 1), x);
+    Inverted(b, x) = ba.if(b, 1 - x, x);
+    s = 0.993;
+    fs = float(ma.SR);
+    pre = _;
+
+
+    b0 = fs*(-1.23938408071082e-8*fs - 7.13052376187718e-7) - 9.98795811595446e-6;
+
+    b1 = fs*(1.23938408071082e-8*fs - 7.13052376187718e-7) - 2.99638743478634e-5;
+
+    b2 = fs*(1.23938408071082e-8*fs + 7.13052376187718e-7) - 2.99638743478634e-5;
+
+    b3 = fs*(-1.23938408071082e-8*fs + 7.13052376187718e-7) - 9.98795811595446e-6;
+
+    a0 = fs*(fs*(6.73029102377671e-15*fs + 1.10493997854221e-10) + 2.30183843147656e-8) + 6.01595252726883e-7;
+
+    a1 = fs*(fs*(-2.01908730713301e-14*fs - 1.10493997854221e-10) + 2.30183843147656e-8) + 1.80478575818065e-6;
+
+    a2 = fs*(fs*(2.01908730713301e-14*fs - 1.10493997854221e-10) - 2.30183843147656e-8) + 1.80478575818065e-6;
+
+    a3 = fs*(fs*(-6.73029102377671e-15*fs + 1.10493997854221e-10) - 2.30183843147656e-8) + 6.01595252726883e-7;
+};
+
+copicatrecord_2clip = _<: ba.if(signbit(_), copicatrecord_2_neg_clip, copicatrecord_2_clip) :>_ with {
+
+    signbit = ffunction(int signbit(float), "math.h", "");
+
+    copicatrecord_2_clip = ffunction(float copicatrecord_2clip(float), "copicatrecord_2_table.h", "");
+
+    copicatrecord_2_neg_clip = ffunction(float copicatrecord_2_negclip(float), "copicatrecord_2_neg_table.h", "");
+
+};
+replay1 = pre : fi.iir((b0/a0,b1/a0,b2/a0),(a1/a0,a2/a0)) : copicatreplay1clip with {
+    LogPot(a, x) = ba.if(a, (exp(a * x) - 1) / (exp(a) - 1), x);
+    Inverted(b, x) = ba.if(b, 1 - x, x);
+    s = 0.993;
+    fs = float(ma.SR);
+    pre = _;
+
+
+    b0 = fs*(-2.16461324600193e-8*fs - 1.31188681575873e-7);
+
+    b1 = 4.32922649200386e-8*pow(fs,2);
+
+    b2 = fs*(-2.16461324600193e-8*fs + 1.31188681575873e-7);
+
+    a0 = fs*(4.33785780482415e-10*fs + 1.16144315716444e-8) + 6.90530766455131e-8;
+
+    a1 = -8.6757156096483e-10*pow(fs,2) + 1.38106153291026e-7;
+
+    a2 = fs*(4.33785780482415e-10*fs - 1.16144315716444e-8) + 6.90530766455131e-8;
+};
+
+copicatreplay1clip = _<: ba.if(signbit(_), copicatreplay1_neg_clip, copicatreplay1_clip) :>_ with {
+
+    signbit = ffunction(int signbit(float), "math.h", "");
+
+    copicatreplay1_clip = ffunction(float copicatreplay1clip(float), "copicatreplay1_table.h", "");
+
+    copicatreplay1_neg_clip = ffunction(float copicatreplay1_negclip(float), "copicatreplay1_neg_table.h", "");
+
+};
+replay2 = pre : fi.iir((b0/a0,b1/a0,b2/a0,b3/a0),(a1/a0,a2/a0,a3/a0)) : copicatreplay2clip with {
+    LogPot(a, x) = ba.if(a, (exp(a * x) - 1) / (exp(a) - 1), x);
+    Inverted(b, x) = ba.if(b, 1 - x, x);
+    s = 0.993;
+    fs = float(ma.SR);
+    pre = _;
+
+
+    b0 = fs*(fs*(-2.1232182495002e-14*fs - 4.5394197100599e-11) - 4.66682400540757e-10);
+
+    b1 = fs*(fs*(6.36965474850061e-14*fs + 4.5394197100599e-11) - 4.66682400540757e-10);
+
+    b2 = fs*(fs*(-6.36965474850061e-14*fs + 4.5394197100599e-11) + 4.66682400540757e-10);
+
+    b3 = fs*(fs*(2.1232182495002e-14*fs - 4.5394197100599e-11) + 4.66682400540757e-10);
+
+    a0 = fs*(fs*(8.99733599098619e-15*fs + 2.15390111438293e-12) + 8.39407340833474e-11) + 7.62080659155505e-10;
+
+    a1 = fs*(fs*(-2.69920079729586e-14*fs - 2.15390111438293e-12) + 8.39407340833474e-11) + 2.28624197746652e-9;
+
+    a2 = fs*(fs*(2.69920079729586e-14*fs - 2.15390111438293e-12) - 8.39407340833474e-11) + 2.28624197746652e-9;
+
+    a3 = fs*(fs*(-8.99733599098619e-15*fs + 2.15390111438293e-12) - 8.39407340833474e-11) + 7.62080659155505e-10;
+};
+
+copicatreplay2clip = _<: ba.if(signbit(_), copicatreplay2_neg_clip, copicatreplay2_clip) :>_ with {
+
+    signbit = ffunction(int signbit(float), "math.h", "");
+
+    copicatreplay2_clip = ffunction(float copicatreplay2clip(float), "copicatreplay2_table.h", "");
+
+    copicatreplay2_neg_clip = ffunction(float copicatreplay2_negclip(float), "copicatreplay2_neg_table.h", "");
+
+};
+
+
+machine = record:vgroup( "Tape Heads", fi.highpass( 4, 40 )<:head1,head2,head3:>fi.lowpass( 1, 6500 ):fi.dcblocker ):replay1:replay2;
+
+// May need to look at levels here
+fbloop = fi.lowpass( 1, 7500 ):*(feedback):*(0.25):fi.highpass( 1, 150 )  ;
+LogPot(a, x) = ba.if(a, (exp(a * x) - 1) / (exp(a) - 1), x);
+s = 0.993;
+
+
+Output = vslider("Output[name:Output]", 1.0, 0.0, 4.0, 0.01) : LogPot(3) : si.smooth(s);
+
+amp = input<:_,((+:_<:machine :>_)~fbloop:*(echo)):>*(Output) ;
+
+freq_split = fi.filterbank(3, (86.0,210.0,1200.0,6531.0));
+process    = freq_split: ( amp , amp , amp, amp, amp) :>_;

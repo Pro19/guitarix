@@ -6,7 +6,7 @@ namespace gxfeed {
 
 class Dsp: public PluginDef {
 private:
-	int fSampleRate;
+	int fSamplingFreq;
 	FAUSTFLOAT fCheckbox0;
 	FAUSTFLOAT fVslider0;
 	int IOTA;
@@ -26,12 +26,12 @@ private:
 	double fRec0[2];
 
 	void clear_state_f();
-	void init(unsigned int sample_rate);
+	void init(unsigned int samplingFreq);
 	void compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input1, FAUSTFLOAT *output0, FAUSTFLOAT *output1);
 	int register_par(const ParamReg& reg);
 
 	static void clear_state_f_static(PluginDef*);
-	static void init_static(unsigned int sample_rate, PluginDef*);
+	static void init_static(unsigned int samplingFreq, PluginDef*);
 	static void compute_static(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input1, FAUSTFLOAT *output0, FAUSTFLOAT *output1, PluginDef*);
 	static int register_params_static(const ParamReg& reg);
 	static void del_instance(PluginDef *p);
@@ -88,16 +88,16 @@ void Dsp::clear_state_f_static(PluginDef *p)
 	static_cast<Dsp*>(p)->clear_state_f();
 }
 
-inline void Dsp::init(unsigned int sample_rate)
+inline void Dsp::init(unsigned int samplingFreq)
 {
-	fSampleRate = sample_rate;
+	fSamplingFreq = samplingFreq;
 	IOTA = 0;
 	clear_state_f();
 }
 
-void Dsp::init_static(unsigned int sample_rate, PluginDef *p)
+void Dsp::init_static(unsigned int samplingFreq, PluginDef *p)
 {
-	static_cast<Dsp*>(p)->init(sample_rate);
+	static_cast<Dsp*>(p)->init(samplingFreq);
 }
 
 void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input1, FAUSTFLOAT *output0, FAUSTFLOAT *output1)
@@ -137,7 +137,7 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input
 		fVec6[0] = fTemp8;
 		fRec0[0] = fVec6[11];
 		double fRec1 = (0.0 - (0.69999999999999996 * fTemp8));
-		double fTemp9 = (iSlow0 ? ((fSlow2 * fTemp0) + (fSlow3 * (fRec1 + fRec0[1]))) : double(input0[i]));
+		double fTemp9 = (iSlow0?((fSlow2 * fTemp0) + (fSlow3 * (fRec1 + fRec0[1]))):double(input0[i]));
 		output0[i] = FAUSTFLOAT(fTemp9);
 		output1[i] = FAUSTFLOAT(fTemp9);
 		IOTA = (IOTA + 1);

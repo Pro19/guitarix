@@ -13,23 +13,27 @@ class mydspSIG0 {
 	
 	int getNumInputsmydspSIG0() {
 		return 0;
+		
 	}
 	int getNumOutputsmydspSIG0() {
 		return 1;
+		
 	}
 	int getInputRatemydspSIG0(int channel) {
 		int rate;
-		switch ((channel)) {
+		switch (channel) {
 			default: {
 				rate = -1;
 				break;
 			}
+			
 		}
 		return rate;
+		
 	}
 	int getOutputRatemydspSIG0(int channel) {
 		int rate;
-		switch ((channel)) {
+		switch (channel) {
 			case 0: {
 				rate = 0;
 				break;
@@ -38,35 +42,41 @@ class mydspSIG0 {
 				rate = -1;
 				break;
 			}
+			
 		}
 		return rate;
+		
 	}
 	
-	void instanceInitmydspSIG0(int sample_rate) {
+	void instanceInitmydspSIG0(int samplingFreq) {
 		for (int l0 = 0; (l0 < 2); l0 = (l0 + 1)) {
 			iRec0[l0] = 0;
+			
 		}
+		
 	}
 	
-	void fillmydspSIG0(int count, double* table) {
+	void fillmydspSIG0(int count, double* output) {
 		for (int i = 0; (i < count); i = (i + 1)) {
 			iRec0[0] = (iRec0[1] + 1);
-			table[i] = std::sin((9.5873799242852573e-05 * double((iRec0[0] + -1))));
+			output[i] = std::sin((9.5873799242852573e-05 * double((iRec0[0] + -1))));
 			iRec0[1] = iRec0[0];
+			
 		}
+		
 	}
 
 };
 
-static mydspSIG0* newmydspSIG0() { return (mydspSIG0*)new mydspSIG0(); }
-static void deletemydspSIG0(mydspSIG0* dsp) { delete dsp; }
+mydspSIG0* newmydspSIG0() { return (mydspSIG0*)new mydspSIG0(); }
+void deletemydspSIG0(mydspSIG0* dsp) { delete dsp; }
 
 static double ftbl0mydspSIG0[65536];
 
 
 class Dsp: public PluginDef {
 private:
-	int fSampleRate;
+	int fSamplingFreq;
 	FAUSTFLOAT fHslider0;
 	double fConst0;
 	FAUSTFLOAT fHslider1;
@@ -75,13 +85,13 @@ private:
 	void clear_state_f();
 	int load_ui_f(const UiBuilder& b, int form);
 	static const char *glade_def;
-	void init(unsigned int sample_rate);
+	void init(unsigned int samplingFreq);
 	void compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input1, FAUSTFLOAT *output0, FAUSTFLOAT *output1);
 	int register_par(const ParamReg& reg);
 
 	static void clear_state_f_static(PluginDef*);
 	static int load_ui_f_static(const UiBuilder& b, int form);
-	static void init_static(unsigned int sample_rate, PluginDef*);
+	static void init_static(unsigned int samplingFreq, PluginDef*);
 	static void compute_static(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input1, FAUSTFLOAT *output0, FAUSTFLOAT *output1, PluginDef*);
 	static int register_params_static(const ParamReg& reg);
 	static void del_instance(PluginDef *p);
@@ -125,20 +135,20 @@ void Dsp::clear_state_f_static(PluginDef *p)
 	static_cast<Dsp*>(p)->clear_state_f();
 }
 
-inline void Dsp::init(unsigned int sample_rate)
+inline void Dsp::init(unsigned int samplingFreq)
 {
 	mydspSIG0* sig0 = newmydspSIG0();
-	sig0->instanceInitmydspSIG0(sample_rate);
+	sig0->instanceInitmydspSIG0(samplingFreq);
 	sig0->fillmydspSIG0(65536, ftbl0mydspSIG0);
 	deletemydspSIG0(sig0);
-	fSampleRate = sample_rate;
-	fConst0 = (1.0 / std::min<double>(192000.0, std::max<double>(1.0, double(fSampleRate))));
+	fSamplingFreq = samplingFreq;
+	fConst0 = (1.0 / std::min<double>(192000.0, std::max<double>(1.0, double(fSamplingFreq))));
 	clear_state_f();
 }
 
-void Dsp::init_static(unsigned int sample_rate, PluginDef *p)
+void Dsp::init_static(unsigned int samplingFreq, PluginDef *p)
 {
-	static_cast<Dsp*>(p)->init(sample_rate);
+	static_cast<Dsp*>(p)->init(samplingFreq);
 }
 
 void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input1, FAUSTFLOAT *output0, FAUSTFLOAT *output1)
@@ -149,8 +159,8 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input
 	for (int i = 0; (i < count); i = (i + 1)) {
 		fRec1[0] = (fSlow2 + (fRec1[1] - std::floor((fSlow2 + fRec1[1]))));
 		double fTemp0 = (fSlow1 + (fSlow0 * ftbl0mydspSIG0[int((65536.0 * fRec1[0]))]));
-		output0[i] = FAUSTFLOAT((double(input0[i]) * fTemp0));
-		output1[i] = FAUSTFLOAT((double(input1[i]) * fTemp0));
+		output0[i] = FAUSTFLOAT((fTemp0 * double(input0[i])));
+		output1[i] = FAUSTFLOAT((fTemp0 * double(input1[i])));
 		fRec1[1] = fRec1[0];
 	}
 }

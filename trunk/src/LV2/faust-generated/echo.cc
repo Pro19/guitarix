@@ -6,7 +6,7 @@ namespace echo {
 
 class Dsp: public PluginLV2 {
 private:
-	uint32_t fSampleRate;
+	uint32_t fSamplingFreq;
 	FAUSTFLOAT fVslider0;
 	FAUSTFLOAT	*fVslider0_;
 	float fConst0;
@@ -21,12 +21,12 @@ private:
 	void connect(uint32_t port,void* data);
 	void clear_state_f();
 	int activate(bool start);
-	void init(uint32_t sample_rate);
+	void init(uint32_t samplingFreq);
 	void compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0);
 
 	static void clear_state_f_static(PluginLV2*);
 	static int activate_static(bool start, PluginLV2*);
-	static void init_static(uint32_t sample_rate, PluginLV2*);
+	static void init_static(uint32_t samplingFreq, PluginLV2*);
 	static void compute_static(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0, PluginLV2*);
 	static void del_instance(PluginLV2 *p);
 	static void connect_static(uint32_t port,void* data, PluginLV2 *p);
@@ -66,16 +66,16 @@ void Dsp::clear_state_f_static(PluginLV2 *p)
 	static_cast<Dsp*>(p)->clear_state_f();
 }
 
-inline void Dsp::init(uint32_t sample_rate)
+inline void Dsp::init(uint32_t samplingFreq)
 {
-	fSampleRate = sample_rate;
-	fConst0 = (0.00100000005f * std::min<float>(192000.0f, std::max<float>(1.0f, float(fSampleRate))));
+	fSamplingFreq = samplingFreq;
+	fConst0 = (0.00100000005f * std::min<float>(192000.0f, std::max<float>(1.0f, float(fSamplingFreq))));
 	IOTA = 0;
 }
 
-void Dsp::init_static(uint32_t sample_rate, PluginLV2 *p)
+void Dsp::init_static(uint32_t samplingFreq, PluginLV2 *p)
 {
-	static_cast<Dsp*>(p)->init(sample_rate);
+	static_cast<Dsp*>(p)->init(samplingFreq);
 }
 
 void Dsp::mem_alloc()
@@ -115,7 +115,7 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *outpu
 	float fSlow0 = (0.00999999978f * float(fVslider0));
 	int iSlow1 = (std::min<int>(131072, std::max<int>(0, (int((fConst0 * float(fVslider1))) + -1))) + 1);
 	for (int i = 0; (i < count); i = (i + 1)) {
-		fRec0[(IOTA & 262143)] = (float(input0[i]) + (fSlow0 * fRec0[((IOTA - iSlow1) & 262143)]));
+		fRec0[(IOTA & 262143)] = ((fSlow0 * fRec0[((IOTA - iSlow1) & 262143)]) + float(input0[i]));
 		output0[i] = FAUSTFLOAT(fRec0[((IOTA - 0) & 262143)]);
 		IOTA = (IOTA + 1);
 	}

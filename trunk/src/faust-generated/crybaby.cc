@@ -6,7 +6,7 @@ namespace crybaby {
 
 class Dsp: public PluginDef {
 private:
-	int fSampleRate;
+	int fSamplingFreq;
 	FAUSTFLOAT fVslider0;
 	FAUSTFLOAT	*fVslider0_;
 	FAUSTFLOAT fVslider1;
@@ -22,12 +22,12 @@ private:
 	float fRec0[3];
 
 	void clear_state_f();
-	void init(unsigned int sample_rate);
+	void init(unsigned int samplingFreq);
 	void compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0);
 	int register_par(const ParamReg& reg);
 
 	static void clear_state_f_static(PluginDef*);
-	static void init_static(unsigned int sample_rate, PluginDef*);
+	static void init_static(unsigned int samplingFreq, PluginDef*);
 	static void compute_static(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0, PluginDef*);
 	static int register_params_static(const ParamReg& reg);
 	static void del_instance(PluginDef *p);
@@ -74,18 +74,18 @@ void Dsp::clear_state_f_static(PluginDef *p)
 	static_cast<Dsp*>(p)->clear_state_f();
 }
 
-inline void Dsp::init(unsigned int sample_rate)
+inline void Dsp::init(unsigned int samplingFreq)
 {
-	fSampleRate = sample_rate;
-	fConst0 = std::min<float>(192000.0f, std::max<float>(1.0f, float(fSampleRate)));
-	fConst1 = (2827.43335f / fConst0);
-	fConst2 = (1413.71667f / fConst0);
+	fSamplingFreq = samplingFreq;
+	fConst0 = std::min<float>(192000.0f, std::max<float>(1.0f, float(fSamplingFreq)));
+	fConst1 = (1413.71667f / fConst0);
+	fConst2 = (2827.43335f / fConst0);
 	clear_state_f();
 }
 
-void Dsp::init_static(unsigned int sample_rate, PluginDef *p)
+void Dsp::init_static(unsigned int samplingFreq, PluginDef *p)
 {
-	static_cast<Dsp*>(p)->init(sample_rate);
+	static_cast<Dsp*>(p)->init(samplingFreq);
 }
 
 void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0)
@@ -98,16 +98,16 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *outpu
 	float fSlow2 = float(fVslider2);
 	float fSlow3 = (9.99999975e-05f * std::pow(4.0f, fSlow2));
 	float fSlow4 = std::pow(2.0f, (2.29999995f * fSlow2));
-	float fSlow5 = (1.0f - (fConst2 * (fSlow4 / std::pow(2.0f, ((2.0f * (1.0f - fSlow2)) + 1.0f)))));
-	float fSlow6 = (0.00200000009f * (std::cos((fConst1 * fSlow4)) * fSlow5));
+	float fSlow5 = (1.0f - (fConst1 * (fSlow4 / std::pow(2.0f, ((2.0f * (1.0f - fSlow2)) + 1.0f)))));
+	float fSlow6 = (0.00200000009f * (fSlow5 * std::cos((fConst2 * fSlow4))));
 	float fSlow7 = (0.00100000005f * mydsp_faustpower2_f(fSlow5));
 	float fSlow8 = (1.0f - (0.00999999978f * fSlow0));
 	for (int i = 0; (i < count); i = (i + 1)) {
-		float fTemp0 = float(input0[i]);
 		fRec1[0] = (fSlow3 + (0.999000013f * fRec1[1]));
+		float fTemp0 = float(input0[i]);
 		fRec2[0] = ((0.999000013f * fRec2[1]) - fSlow6);
 		fRec3[0] = (fSlow7 + (0.999000013f * fRec3[1]));
-		fRec0[0] = ((fSlow1 * (fTemp0 * fRec1[0])) - (0.995999992f * ((fRec2[0] * fRec0[1]) + (fRec3[0] * fRec0[2]))));
+		fRec0[0] = ((fSlow1 * (fRec1[0] * fTemp0)) - (0.995999992f * ((fRec2[0] * fRec0[1]) + (fRec3[0] * fRec0[2]))));
 		output0[i] = FAUSTFLOAT(((fRec0[0] + (fSlow8 * fTemp0)) - (0.995999992f * fRec0[1])));
 		fRec1[1] = fRec1[0];
 		fRec2[1] = fRec2[0];

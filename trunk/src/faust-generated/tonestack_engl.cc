@@ -6,7 +6,7 @@ namespace tonestack_engl {
 
 class Dsp: public PluginDef {
 private:
-	int fSampleRate;
+	int fSamplingFreq;
 	double fConst0;
 	FAUSTFLOAT fVslider0;
 	FAUSTFLOAT	*fVslider0_;
@@ -19,12 +19,12 @@ private:
 	double fRec0[4];
 
 	void clear_state_f();
-	void init(unsigned int sample_rate);
+	void init(unsigned int samplingFreq);
 	void compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0);
 	int register_par(const ParamReg& reg);
 
 	static void clear_state_f_static(PluginDef*);
-	static void init_static(unsigned int sample_rate, PluginDef*);
+	static void init_static(unsigned int samplingFreq, PluginDef*);
 	static void compute_static(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0, PluginDef*);
 	static int register_params_static(const ParamReg& reg);
 	static void del_instance(PluginDef *p);
@@ -68,18 +68,18 @@ void Dsp::clear_state_f_static(PluginDef *p)
 	static_cast<Dsp*>(p)->clear_state_f();
 }
 
-inline void Dsp::init(unsigned int sample_rate)
+inline void Dsp::init(unsigned int samplingFreq)
 {
-	fSampleRate = sample_rate;
-	fConst0 = (2.0 * std::min<double>(192000.0, std::max<double>(1.0, double(fSampleRate))));
+	fSamplingFreq = samplingFreq;
+	fConst0 = (2.0 * std::min<double>(192000.0, std::max<double>(1.0, double(fSamplingFreq))));
 	fConst1 = mydsp_faustpower2_f(fConst0);
 	fConst2 = (3.0 * fConst0);
 	clear_state_f();
 }
 
-void Dsp::init_static(unsigned int sample_rate, PluginDef *p)
+void Dsp::init_static(unsigned int samplingFreq, PluginDef *p)
 {
-	static_cast<Dsp*>(p)->init(sample_rate);
+	static_cast<Dsp*>(p)->init(samplingFreq);
 }
 
 void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0)
@@ -92,16 +92,16 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *outpu
 	double fSlow2 = ((0.00094000000000000008 * fSlow0) + (0.04760000000000001 * fSlow1));
 	double fSlow3 = (fConst0 * (fSlow2 + 0.010502000000000001));
 	double fSlow4 = (8.9488000000000008e-07 * fSlow0);
-	double fSlow5 = (((fSlow0 * (((4.4744000000000004e-05 * fSlow1) + -3.3821199999999999e-06) - fSlow4)) + (0.00023358999999999999 * fSlow1)) + 6.0817999999999999e-06);
+	double fSlow5 = ((((((4.4744000000000004e-05 * fSlow1) + -3.3821199999999999e-06) - fSlow4) * fSlow0) + (0.00023358999999999999 * fSlow1)) + 6.0817999999999999e-06);
 	double fSlow6 = ((9.2778000000000012e-09 * fSlow1) - (1.8555600000000002e-10 * fSlow0));
 	double fSlow7 = (3.3135000000000005e-08 * fSlow1);
-	double fSlow8 = (((fSlow0 * (fSlow6 + -4.7714400000000011e-10)) + fSlow7) + 6.627000000000001e-10);
+	double fSlow8 = ((((fSlow6 + -4.7714400000000011e-10) * fSlow0) + fSlow7) + 6.627000000000001e-10);
 	double fSlow9 = (fConst0 * fSlow8);
 	double fSlow10 = (1.0 / (-1.0 - (fSlow3 + (fConst1 * (fSlow5 + fSlow9)))));
 	double fSlow11 = double(fVslider2);
 	double fSlow12 = (fConst0 * ((fSlow2 + (0.00014999999999999999 * fSlow11)) + 0.00095200000000000005));
-	double fSlow13 = (((1.4100000000000001e-06 * fSlow11) + ((fSlow0 * (1.0358800000000002e-06 - fSlow4)) + (fSlow1 * ((4.4744000000000004e-05 * fSlow0) + 1.269e-05)))) + 2.5380000000000001e-07);
-	double fSlow14 = ((fSlow0 * (fSlow6 + 1.8555600000000002e-10)) + (fSlow11 * (fSlow7 - (6.627000000000001e-10 * (fSlow0 + -1.0)))));
+	double fSlow13 = (((1.4100000000000001e-06 * fSlow11) + (((1.0358800000000002e-06 - fSlow4) * fSlow0) + (fSlow1 * ((4.4744000000000004e-05 * fSlow0) + 1.269e-05)))) + 2.5380000000000001e-07);
+	double fSlow14 = (((fSlow6 + 1.8555600000000002e-10) * fSlow0) + ((fSlow7 - (6.627000000000001e-10 * (fSlow0 + -1.0))) * fSlow11));
 	double fSlow15 = (fConst0 * fSlow14);
 	double fSlow16 = (0.0 - (fSlow12 + (fConst1 * (fSlow13 + fSlow15))));
 	double fSlow17 = (fConst2 * fSlow8);

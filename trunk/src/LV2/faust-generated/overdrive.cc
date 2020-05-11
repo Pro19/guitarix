@@ -6,7 +6,7 @@ namespace overdrive {
 
 class Dsp: public PluginLV2 {
 private:
-	uint32_t fSampleRate;
+	uint32_t fSamplingFreq;
 	FAUSTFLOAT fVslider0;
 	FAUSTFLOAT	*fVslider0_;
 	FAUSTFLOAT fVslider1;
@@ -15,11 +15,11 @@ private:
 
 	void connect(uint32_t port,void* data);
 	void clear_state_f();
-	void init(uint32_t sample_rate);
+	void init(uint32_t samplingFreq);
 	void compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0);
 
 	static void clear_state_f_static(PluginLV2*);
-	static void init_static(uint32_t sample_rate, PluginLV2*);
+	static void init_static(uint32_t samplingFreq, PluginLV2*);
 	static void compute_static(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0, PluginLV2*);
 	static void del_instance(PluginLV2 *p);
 	static void connect_static(uint32_t port,void* data, PluginLV2 *p);
@@ -57,15 +57,15 @@ void Dsp::clear_state_f_static(PluginLV2 *p)
 	static_cast<Dsp*>(p)->clear_state_f();
 }
 
-inline void Dsp::init(uint32_t sample_rate)
+inline void Dsp::init(uint32_t samplingFreq)
 {
-	fSampleRate = sample_rate;
+	fSamplingFreq = samplingFreq;
 	clear_state_f();
 }
 
-void Dsp::init_static(uint32_t sample_rate, PluginLV2 *p)
+void Dsp::init_static(uint32_t samplingFreq, PluginLV2 *p)
 {
-	static_cast<Dsp*>(p)->init(sample_rate);
+	static_cast<Dsp*>(p)->init(samplingFreq);
 }
 
 void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0)
@@ -80,10 +80,10 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *outpu
 	double fSlow5 = (0.0001 * mydsp_faustpower2_f(fSlow0));
 	double fSlow6 = (fSlow3 + -1.0);
 	for (int i = 0; (i < count); i = (i + 1)) {
-		double fTemp0 = double(input0[i]);
 		fRec0[0] = (fSlow4 + (0.999 * fRec0[1]));
+		double fTemp0 = double(input0[i]);
 		double fTemp1 = std::fabs((fSlow1 * fTemp0));
-		output0[i] = FAUSTFLOAT((fTemp0 * (fSlow2 + (fSlow1 * ((fRec0[0] * (fSlow3 + fTemp1)) / (((fSlow5 * mydsp_faustpower2_f(fTemp0)) + (fSlow6 * fTemp1)) + 1.0))))));
+		output0[i] = FAUSTFLOAT(((fSlow2 + (fSlow1 * ((fRec0[0] * (fSlow3 + fTemp1)) / (((fSlow5 * mydsp_faustpower2_f(fTemp0)) + (fSlow6 * fTemp1)) + 1.0)))) * fTemp0));
 		fRec0[1] = fRec0[0];
 	}
 #undef fVslider0

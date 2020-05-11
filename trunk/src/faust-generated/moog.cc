@@ -6,7 +6,7 @@ namespace moog {
 
 class Dsp: public PluginDef {
 private:
-	int fSampleRate;
+	int fSamplingFreq;
 	int iVec0[2];
 	double fRec5[2];
 	double fConst0;
@@ -27,13 +27,13 @@ private:
 	void clear_state_f();
 	int load_ui_f(const UiBuilder& b, int form);
 	static const char *glade_def;
-	void init(unsigned int sample_rate);
+	void init(unsigned int samplingFreq);
 	void compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input1, FAUSTFLOAT *output0, FAUSTFLOAT *output1);
 	int register_par(const ParamReg& reg);
 
 	static void clear_state_f_static(PluginDef*);
 	static int load_ui_f_static(const UiBuilder& b, int form);
-	static void init_static(unsigned int sample_rate, PluginDef*);
+	static void init_static(unsigned int samplingFreq, PluginDef*);
 	static void compute_static(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input1, FAUSTFLOAT *output0, FAUSTFLOAT *output1, PluginDef*);
 	static int register_params_static(const ParamReg& reg);
 	static void del_instance(PluginDef *p);
@@ -89,16 +89,16 @@ void Dsp::clear_state_f_static(PluginDef *p)
 	static_cast<Dsp*>(p)->clear_state_f();
 }
 
-inline void Dsp::init(unsigned int sample_rate)
+inline void Dsp::init(unsigned int samplingFreq)
 {
-	fSampleRate = sample_rate;
-	fConst0 = (6.2831853071795862 / std::min<double>(192000.0, std::max<double>(1.0, double(fSampleRate))));
+	fSamplingFreq = samplingFreq;
+	fConst0 = (6.2831853071795862 / std::min<double>(192000.0, std::max<double>(1.0, double(fSamplingFreq))));
 	clear_state_f();
 }
 
-void Dsp::init_static(unsigned int sample_rate, PluginDef *p)
+void Dsp::init_static(unsigned int samplingFreq, PluginDef *p)
 {
-	static_cast<Dsp*>(p)->init(sample_rate);
+	static_cast<Dsp*>(p)->init(samplingFreq);
 }
 
 void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input1, FAUSTFLOAT *output0, FAUSTFLOAT *output1)
@@ -111,14 +111,14 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input
 		fRec6[0] = (fSlow0 + (0.999 * fRec6[1]));
 		double fTemp0 = (fConst0 * fRec6[0]);
 		double fTemp1 = (1.0 - fTemp0);
-		fRec4[0] = ((double(input0[i]) + (fRec5[0] + (fTemp1 * fRec4[1]))) - (fSlow1 * fRec0[1]));
+		fRec4[0] = (((fRec5[0] + (fTemp1 * fRec4[1])) + double(input0[i])) - (fSlow1 * fRec0[1]));
 		fRec3[0] = (fRec4[0] + (fTemp1 * fRec3[1]));
 		fRec2[0] = (fRec3[0] + (fTemp1 * fRec2[1]));
 		fRec1[0] = (fRec2[0] + (fRec1[1] * fTemp1));
 		double fTemp2 = mydsp_faustpower4_f(fTemp0);
 		fRec0[0] = (fRec1[0] * fTemp2);
 		output0[i] = FAUSTFLOAT(fRec0[0]);
-		fRec11[0] = ((double(input1[i]) + (fRec5[0] + (fTemp1 * fRec11[1]))) - (fSlow1 * fRec7[1]));
+		fRec11[0] = (((fRec5[0] + (fTemp1 * fRec11[1])) + double(input1[i])) - (fSlow1 * fRec7[1]));
 		fRec10[0] = (fRec11[0] + (fTemp1 * fRec10[1]));
 		fRec9[0] = (fRec10[0] + (fTemp1 * fRec9[1]));
 		fRec8[0] = (fRec9[0] + (fTemp1 * fRec8[1]));

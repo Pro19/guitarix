@@ -6,7 +6,7 @@ namespace autowah {
 
 class Dsp: public PluginDef {
 private:
-	int fSampleRate;
+	int fSamplingFreq;
 	FAUSTFLOAT fVslider0;
 	FAUSTFLOAT	*fVslider0_;
 	FAUSTFLOAT fVslider1;
@@ -28,12 +28,12 @@ private:
 	float fRec0[3];
 
 	void clear_state_f();
-	void init(unsigned int sample_rate);
+	void init(unsigned int samplingFreq);
 	void compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0);
 	int register_par(const ParamReg& reg);
 
 	static void clear_state_f_static(PluginDef*);
-	static void init_static(unsigned int sample_rate, PluginDef*);
+	static void init_static(unsigned int samplingFreq, PluginDef*);
 	static void compute_static(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0, PluginDef*);
 	static int register_params_static(const ParamReg& reg);
 	static void del_instance(PluginDef *p);
@@ -82,10 +82,10 @@ void Dsp::clear_state_f_static(PluginDef *p)
 	static_cast<Dsp*>(p)->clear_state_f();
 }
 
-inline void Dsp::init(unsigned int sample_rate)
+inline void Dsp::init(unsigned int samplingFreq)
 {
-	fSampleRate = sample_rate;
-	fConst0 = std::min<float>(192000.0f, std::max<float>(1.0f, float(fSampleRate)));
+	fSamplingFreq = samplingFreq;
+	fConst0 = std::min<float>(192000.0f, std::max<float>(1.0f, float(fSamplingFreq)));
 	fConst1 = std::exp((0.0f - (100.0f / fConst0)));
 	fConst2 = (1.0f - fConst1);
 	fConst3 = std::exp((0.0f - (10.0f / fConst0)));
@@ -95,9 +95,9 @@ inline void Dsp::init(unsigned int sample_rate)
 	clear_state_f();
 }
 
-void Dsp::init_static(unsigned int sample_rate, PluginDef *p)
+void Dsp::init_static(unsigned int samplingFreq, PluginDef *p)
 {
-	static_cast<Dsp*>(p)->init(sample_rate);
+	static_cast<Dsp*>(p)->init(samplingFreq);
 }
 
 void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0)
@@ -108,7 +108,7 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *outpu
 	float fSlow0 = float(fVslider0);
 	float fSlow1 = float(fVslider1);
 	float fSlow2 = (0.00999999978f * (fSlow1 * float(fVslider2)));
-	float fSlow3 = ((1.0f - fSlow0) + (1.0f - (0.00999999978f * fSlow1)));
+	float fSlow3 = ((1.0f - (0.00999999978f * fSlow1)) + (1.0f - fSlow0));
 	for (int i = 0; (i < count); i = (i + 1)) {
 		float fTemp0 = float(input0[i]);
 		float fTemp1 = std::fabs(fTemp0);
@@ -120,7 +120,7 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *outpu
 		float fTemp4 = (1.0f - (fConst5 * (fTemp3 / std::pow(2.0f, ((2.0f * (1.0f - fTemp2)) + 1.0f)))));
 		fRec4[0] = ((0.999000013f * fRec4[1]) - (0.00200000009f * (fTemp4 * std::cos((fConst6 * fTemp3)))));
 		fRec5[0] = ((0.999000013f * fRec5[1]) + (0.00100000005f * mydsp_faustpower2_f(fTemp4)));
-		fRec0[0] = ((fSlow2 * (fTemp0 * fRec1[0])) - ((fRec4[0] * fRec0[1]) + (fRec5[0] * fRec0[2])));
+		fRec0[0] = ((fSlow2 * (fRec1[0] * fTemp0)) - ((fRec4[0] * fRec0[1]) + (fRec5[0] * fRec0[2])));
 		output0[i] = FAUSTFLOAT(((fSlow0 * (fRec0[0] - fRec0[1])) + (fSlow3 * fTemp0)));
 		fRec3[1] = fRec3[0];
 		fRec2[1] = fRec2[0];

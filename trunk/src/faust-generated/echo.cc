@@ -6,7 +6,7 @@ namespace echo {
 
 class Dsp: public PluginDef {
 private:
-	int fSampleRate;
+	int fSamplingFreq;
 	FAUSTFLOAT fVslider0;
 	float fRec1[2];
 	float fConst0;
@@ -28,14 +28,14 @@ private:
 	int activate(bool start);
 	int load_ui_f(const UiBuilder& b, int form);
 	static const char *glade_def;
-	void init(unsigned int sample_rate);
+	void init(unsigned int samplingFreq);
 	void compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0);
 	int register_par(const ParamReg& reg);
 
 	static void clear_state_f_static(PluginDef*);
 	static int activate_static(bool start, PluginDef*);
 	static int load_ui_f_static(const UiBuilder& b, int form);
-	static void init_static(unsigned int sample_rate, PluginDef*);
+	static void init_static(unsigned int samplingFreq, PluginDef*);
 	static void compute_static(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0, PluginDef*);
 	static int register_params_static(const ParamReg& reg);
 	static void del_instance(PluginDef *p);
@@ -86,19 +86,19 @@ void Dsp::clear_state_f_static(PluginDef *p)
 	static_cast<Dsp*>(p)->clear_state_f();
 }
 
-inline void Dsp::init(unsigned int sample_rate)
+inline void Dsp::init(unsigned int samplingFreq)
 {
-	fSampleRate = sample_rate;
-	fConst0 = std::min<float>(192000.0f, std::max<float>(1.0f, float(fSampleRate)));
+	fSamplingFreq = samplingFreq;
+	fConst0 = std::min<float>(192000.0f, std::max<float>(1.0f, float(fSamplingFreq)));
 	fConst1 = (60.0f * fConst0);
 	fConst2 = (10.0f / fConst0);
 	fConst3 = (0.0f - fConst2);
 	IOTA = 0;
 }
 
-void Dsp::init_static(unsigned int sample_rate, PluginDef *p)
+void Dsp::init_static(unsigned int samplingFreq, PluginDef *p)
 {
-	static_cast<Dsp*>(p)->init(sample_rate);
+	static_cast<Dsp*>(p)->init(samplingFreq);
 }
 
 void Dsp::mem_alloc()
@@ -137,12 +137,12 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *outpu
 	int iSlow1 = (int((fConst1 / float(fHslider0))) + -1);
 	for (int i = 0; (i < count); i = (i + 1)) {
 		fRec1[0] = (fSlow0 + (0.999000013f * fRec1[1]));
-		float fTemp0 = ((fRec2[1] != 0.0f) ? (((fRec3[1] > 0.0f) & (fRec3[1] < 1.0f)) ? fRec2[1] : 0.0f) : (((fRec3[1] == 0.0f) & (iSlow1 != iRec4[1])) ? fConst2 : (((fRec3[1] == 1.0f) & (iSlow1 != iRec5[1])) ? fConst3 : 0.0f)));
+		float fTemp0 = ((fRec2[1] != 0.0f)?(((fRec3[1] > 0.0f) & (fRec3[1] < 1.0f))?fRec2[1]:0.0f):(((fRec3[1] == 0.0f) & (iSlow1 != iRec4[1]))?fConst2:(((fRec3[1] == 1.0f) & (iSlow1 != iRec5[1]))?fConst3:0.0f)));
 		fRec2[0] = fTemp0;
 		fRec3[0] = std::max<float>(0.0f, std::min<float>(1.0f, (fRec3[1] + fTemp0)));
-		iRec4[0] = (((fRec3[1] >= 1.0f) & (iRec5[1] != iSlow1)) ? iSlow1 : iRec4[1]);
-		iRec5[0] = (((fRec3[1] <= 0.0f) & (iRec4[1] != iSlow1)) ? iSlow1 : iRec5[1]);
-		fRec0[(IOTA & 1048575)] = (float(input0[i]) + (fRec1[0] * (((1.0f - fRec3[0]) * fRec0[((IOTA - (std::min<int>(524288, std::max<int>(0, iRec4[0])) + 1)) & 1048575)]) + (fRec3[0] * fRec0[((IOTA - (std::min<int>(524288, std::max<int>(0, iRec5[0])) + 1)) & 1048575)]))));
+		iRec4[0] = (((fRec3[1] >= 1.0f) & (iRec5[1] != iSlow1))?iSlow1:iRec4[1]);
+		iRec5[0] = (((fRec3[1] <= 0.0f) & (iRec4[1] != iSlow1))?iSlow1:iRec5[1]);
+		fRec0[(IOTA & 1048575)] = ((fRec1[0] * (((1.0f - fRec3[0]) * fRec0[((IOTA - (std::min<int>(524288, std::max<int>(0, iRec4[0])) + 1)) & 1048575)]) + (fRec3[0] * fRec0[((IOTA - (std::min<int>(524288, std::max<int>(0, iRec5[0])) + 1)) & 1048575)]))) + float(input0[i]));
 		output0[i] = FAUSTFLOAT(fRec0[((IOTA - 0) & 1048575)]);
 		fRec1[1] = fRec1[0];
 		fRec2[1] = fRec2[0];

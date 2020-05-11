@@ -7,7 +7,7 @@ namespace gxmetal_amp {
 
 class Dsp: public PluginLV2 {
 private:
-	uint32_t fSampleRate;
+	uint32_t fSamplingFreq;
 	double fConst0;
 	double fConst1;
 	double fConst2;
@@ -99,11 +99,11 @@ private:
 
 	void connect(uint32_t port,void* data);
 	void clear_state_f();
-	void init(uint32_t sample_rate);
+	void init(uint32_t samplingFreq);
 	void compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0);
 
 	static void clear_state_f_static(PluginLV2*);
-	static void init_static(uint32_t sample_rate, PluginLV2*);
+	static void init_static(uint32_t samplingFreq, PluginLV2*);
 	static void compute_static(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0, PluginLV2*);
 	static void del_instance(PluginLV2 *p);
 	static void connect_static(uint32_t port,void* data, PluginLV2 *p);
@@ -180,10 +180,10 @@ void Dsp::clear_state_f_static(PluginLV2 *p)
 	static_cast<Dsp*>(p)->clear_state_f();
 }
 
-inline void Dsp::init(uint32_t sample_rate)
+inline void Dsp::init(uint32_t samplingFreq)
 {
-	fSampleRate = sample_rate;
-	fConst0 = std::min<double>(192000.0, std::max<double>(1.0, double(fSampleRate)));
+	fSamplingFreq = samplingFreq;
+	fConst0 = std::min<double>(192000.0, std::max<double>(1.0, double(fSamplingFreq)));
 	fConst1 = std::tan((37699.111843077517 / fConst0));
 	fConst2 = (1.0 / fConst1);
 	fConst3 = (1.0 / (((fConst2 + 1.4142135623730949) / fConst1) + 1.0));
@@ -195,7 +195,7 @@ inline void Dsp::init(uint32_t sample_rate)
 	fConst9 = std::tan((97.389372261283583 / fConst0));
 	fConst10 = (1.0 / fConst9);
 	fConst11 = (fConst10 + 1.0);
-	fConst12 = (1.0 / (fConst9 * fConst11));
+	fConst12 = (1.0 / (fConst11 * fConst9));
 	fConst13 = (2.0 * fConst0);
 	fConst14 = mydsp_faustpower2_f(fConst13);
 	fConst15 = (1.0 / std::tan((20517.741620594938 / fConst0)));
@@ -226,9 +226,9 @@ inline void Dsp::init(uint32_t sample_rate)
 	clear_state_f();
 }
 
-void Dsp::init_static(uint32_t sample_rate, PluginLV2 *p)
+void Dsp::init_static(uint32_t samplingFreq, PluginLV2 *p)
 {
-	static_cast<Dsp*>(p)->init(sample_rate);
+	static_cast<Dsp*>(p)->init(samplingFreq);
 }
 
 void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0)
@@ -268,7 +268,7 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *outpu
 		fRec1[0] = (fSlow2 + (0.999 * fRec1[1]));
 		double fTemp0 = double(input0[i]);
 		double fTemp1 = std::fabs(fTemp0);
-		double fTemp2 = (((fTemp0 * (fSlow1 + fTemp1)) / ((mydsp_faustpower2_f(fTemp0) + (fSlow16 * fTemp1)) + 1.0)) + 1.0000000000000001e-15);
+		double fTemp2 = ((((fSlow1 + fTemp1) * fTemp0) / ((mydsp_faustpower2_f(fTemp0) + (fSlow16 * fTemp1)) + 1.0)) + 1.0000000000000001e-15);
 		fVec0[0] = fTemp2;
 		fRec22[0] = ((0.93028479253239138 * (fTemp2 + fVec0[1])) - (0.86056958506478287 * fRec22[1]));
 		fRec21[0] = (fRec22[0] - ((1.8405051250752198 * fRec21[1]) + (0.86129424393186271 * fRec21[2])));

@@ -11,8 +11,8 @@ namespace eldist {
 class Dsp: public PluginDef {
 private:
 	gx_resample::FixedRateResampler smp;
-	int sample_rate;
-	int fSampleRate;
+	int samplingFreq;
+	int fSamplingFreq;
 	double fConst0;
 	double fConst1;
 	double fConst2;
@@ -25,13 +25,13 @@ private:
 	void clear_state_f();
 	int load_ui_f(const UiBuilder& b, int form);
 	static const char *glade_def;
-	void init(unsigned int sample_rate);
+	void init(unsigned int samplingFreq);
 	void compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0);
 	int register_par(const ParamReg& reg);
 
 	static void clear_state_f_static(PluginDef*);
 	static int load_ui_f_static(const UiBuilder& b, int form);
-	static void init_static(unsigned int sample_rate, PluginDef*);
+	static void init_static(unsigned int samplingFreq, PluginDef*);
 	static void compute_static(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0, PluginDef*);
 	static int register_params_static(const ParamReg& reg);
 	static void del_instance(PluginDef *p);
@@ -78,10 +78,10 @@ void Dsp::clear_state_f_static(PluginDef *p)
 
 inline void Dsp::init(unsigned int RsamplingFreq)
 {
-	sample_rate = 96000;
-	smp.setup(RsamplingFreq, sample_rate);
-	fSampleRate = sample_rate;
-	fConst0 = std::min<double>(192000.0, std::max<double>(1.0, double(fSampleRate)));
+	samplingFreq = 96000;
+	smp.setup(RsamplingFreq, samplingFreq);
+	fSamplingFreq = samplingFreq;
+	fConst0 = std::min<double>(192000.0, std::max<double>(1.0, double(fSamplingFreq)));
 	fConst1 = (3.9949101411109002e-05 * fConst0);
 	fConst2 = (fConst1 + -8.66687668918243e-05);
 	fConst3 = (4.0795552554224603e-05 * fConst0);
@@ -89,9 +89,9 @@ inline void Dsp::init(unsigned int RsamplingFreq)
 	clear_state_f();
 }
 
-void Dsp::init_static(unsigned int sample_rate, PluginDef *p)
+void Dsp::init_static(unsigned int samplingFreq, PluginDef *p)
 {
-	static_cast<Dsp*>(p)->init(sample_rate);
+	static_cast<Dsp*>(p)->init(samplingFreq);
 }
 
 void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0)

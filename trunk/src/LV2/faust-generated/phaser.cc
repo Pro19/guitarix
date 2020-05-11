@@ -6,7 +6,7 @@ namespace phaser {
 
 class Dsp: public PluginLV2 {
 private:
-	uint32_t fSampleRate;
+	uint32_t fSamplingFreq;
 	FAUSTFLOAT fHslider0;
 	FAUSTFLOAT	*fHslider0_;
 	FAUSTFLOAT fCheckbox0;
@@ -46,11 +46,11 @@ private:
 
 	void connect(uint32_t port,void* data);
 	void clear_state_f();
-	void init(uint32_t sample_rate);
+	void init(uint32_t samplingFreq);
 	void compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input1, FAUSTFLOAT *output0, FAUSTFLOAT *output1);
 
 	static void clear_state_f_static(PluginLV2*);
-	static void init_static(uint32_t sample_rate, PluginLV2*);
+	static void init_static(uint32_t samplingFreq, PluginLV2*);
 	static void compute_static(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input1, FAUSTFLOAT *output0, FAUSTFLOAT *output1, PluginLV2*);
 	static void del_instance(PluginLV2 *p);
 	static void connect_static(uint32_t port,void* data, PluginLV2 *p);
@@ -100,18 +100,18 @@ void Dsp::clear_state_f_static(PluginLV2 *p)
 	static_cast<Dsp*>(p)->clear_state_f();
 }
 
-inline void Dsp::init(uint32_t sample_rate)
+inline void Dsp::init(uint32_t samplingFreq)
 {
-	fSampleRate = sample_rate;
-	fConst0 = std::min<float>(192000.0f, std::max<float>(1.0f, float(fSampleRate)));
+	fSamplingFreq = samplingFreq;
+	fConst0 = std::min<float>(192000.0f, std::max<float>(1.0f, float(fSamplingFreq)));
 	fConst1 = (1.0f / fConst0);
 	fConst2 = (6.28318548f / fConst0);
 	clear_state_f();
 }
 
-void Dsp::init_static(uint32_t sample_rate, PluginLV2 *p)
+void Dsp::init_static(uint32_t samplingFreq, PluginLV2 *p)
 {
-	static_cast<Dsp*>(p)->init(sample_rate);
+	static_cast<Dsp*>(p)->init(samplingFreq);
 }
 
 void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input1, FAUSTFLOAT *output0, FAUSTFLOAT *output1)
@@ -127,7 +127,7 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input
 #define fHslider7 (*fHslider7_)
 #define fCheckbox1 (*fCheckbox1_)
 	float fSlow0 = std::pow(10.0f, (0.0500000007f * float(fHslider0)));
-	float fSlow1 = (0.5f * (int(float(fCheckbox0)) ? 2.0f : float(fHslider1)));
+	float fSlow1 = (0.5f * (int(float(fCheckbox0))?2.0f:float(fHslider1)));
 	float fSlow2 = (1.0f - fSlow1);
 	float fSlow3 = std::exp((fConst1 * (0.0f - (3.14159274f * float(fHslider2)))));
 	float fSlow4 = mydsp_faustpower2_f(fSlow3);
@@ -143,7 +143,7 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input
 	float fSlow14 = mydsp_faustpower2_f(fSlow7);
 	float fSlow15 = mydsp_faustpower3_f(fSlow7);
 	float fSlow16 = mydsp_faustpower4_f(fSlow7);
-	float fSlow17 = (int(float(fCheckbox1)) ? (-1.0f * fSlow1) : fSlow1);
+	float fSlow17 = (int(float(fCheckbox1))?(-1.0f * fSlow1):fSlow1);
 	for (int i = 0; (i < count); i = (i + 1)) {
 		float fTemp0 = float(input0[i]);
 		iVec0[0] = 1;
@@ -159,7 +159,7 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input
 		float fTemp5 = (fRec1[1] * std::cos((fSlow16 * fTemp1)));
 		fRec1[0] = ((fSlow5 * (fTemp4 - fTemp5)) + (fRec2[2] + (fSlow4 * (fRec2[0] - fRec1[2]))));
 		fRec0[0] = ((fSlow4 * fRec1[0]) + ((fSlow5 * fTemp5) + fRec1[2]));
-		output0[i] = FAUSTFLOAT(((fSlow0 * (fTemp0 * fSlow2)) + (fRec0[0] * fSlow17)));
+		output0[i] = FAUSTFLOAT(((fSlow0 * (fSlow2 * fTemp0)) + (fRec0[0] * fSlow17)));
 		float fTemp6 = float(input1[i]);
 		float fTemp7 = (fSlow9 + (fSlow10 * (1.0f - fRec6[0])));
 		float fTemp8 = (fRec11[1] * std::cos((fSlow7 * fTemp7)));
@@ -171,7 +171,7 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *input
 		float fTemp11 = (fRec8[1] * std::cos((fSlow16 * fTemp7)));
 		fRec8[0] = ((fSlow5 * (fTemp10 - fTemp11)) + (fRec9[2] + (fSlow4 * (fRec9[0] - fRec8[2]))));
 		fRec7[0] = ((fSlow4 * fRec8[0]) + ((fSlow5 * fTemp11) + fRec8[2]));
-		output1[i] = FAUSTFLOAT(((fSlow0 * (fTemp6 * fSlow2)) + (fRec7[0] * fSlow17)));
+		output1[i] = FAUSTFLOAT(((fSlow0 * (fSlow2 * fTemp6)) + (fRec7[0] * fSlow17)));
 		iVec0[1] = iVec0[0];
 		fRec5[1] = fRec5[0];
 		fRec6[1] = fRec6[0];

@@ -6,17 +6,17 @@ namespace distortion2 {
 
 class Dsp: public PluginDef {
 private:
-	int fSampleRate;
+	int fSamplingFreq;
 	FAUSTFLOAT fVslider0;
 	double fConst0;
 	double fConst1;
 	FAUSTFLOAT fVslider1;
 	double fConst2;
 	double fConst3;
+	double fConst4;
 	FAUSTFLOAT fVslider2;
 	double fRec3[3];
 	double fVec0[2];
-	double fConst4;
 	double fRec2[2];
 	FAUSTFLOAT fVslider3;
 	double fRec4[2];
@@ -28,13 +28,13 @@ private:
 	void clear_state_f();
 	int load_ui_f(const UiBuilder& b, int form);
 	static const char *glade_def;
-	void init(unsigned int sample_rate);
+	void init(unsigned int samplingFreq);
 	void compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0);
 	int register_par(const ParamReg& reg);
 
 	static void clear_state_f_static(PluginDef*);
 	static int load_ui_f_static(const UiBuilder& b, int form);
-	static void init_static(unsigned int sample_rate, PluginDef*);
+	static void init_static(unsigned int samplingFreq, PluginDef*);
 	static void compute_static(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0, PluginDef*);
 	static int register_params_static(const ParamReg& reg);
 	static void del_instance(PluginDef *p);
@@ -84,10 +84,10 @@ void Dsp::clear_state_f_static(PluginDef *p)
 	static_cast<Dsp*>(p)->clear_state_f();
 }
 
-inline void Dsp::init(unsigned int sample_rate)
+inline void Dsp::init(unsigned int samplingFreq)
 {
-	fSampleRate = sample_rate;
-	fConst0 = std::min<double>(192000.0, std::max<double>(1.0, double(fSampleRate)));
+	fSamplingFreq = samplingFreq;
+	fConst0 = std::min<double>(192000.0, std::max<double>(1.0, double(fSamplingFreq)));
 	fConst1 = (3.1415926535897931 / fConst0);
 	fConst2 = (1.0 / std::tan((20520.88321324853 / fConst0)));
 	fConst3 = (1.0 / (fConst2 + 1.0));
@@ -95,9 +95,9 @@ inline void Dsp::init(unsigned int sample_rate)
 	clear_state_f();
 }
 
-void Dsp::init_static(unsigned int sample_rate, PluginDef *p)
+void Dsp::init_static(unsigned int samplingFreq, PluginDef *p)
 {
-	static_cast<Dsp*>(p)->init(sample_rate);
+	static_cast<Dsp*>(p)->init(samplingFreq);
 }
 
 void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0)
@@ -124,7 +124,7 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *outpu
 		fRec3[0] = ((fSlow0 * fTemp0) - (fSlow7 * ((fSlow10 * fRec3[2]) + (fSlow11 * fRec3[1]))));
 		double fTemp1 = (fSlow7 * (((fSlow9 * fRec3[0]) + (fSlow12 * fRec3[1])) + (fSlow9 * fRec3[2])));
 		fVec0[0] = fTemp1;
-		fRec2[0] = (fConst3 * ((fTemp1 + fVec0[1]) - (fConst4 * fRec2[1])));
+		fRec2[0] = (0.0 - (fConst3 * ((fConst4 * fRec2[1]) - (fTemp1 + fVec0[1]))));
 		fRec4[0] = (fSlow13 + (0.999 * fRec4[1]));
 		double fTemp2 = (fRec2[0] * fRec4[0]);
 		fRec5[0] = (fSlow14 + (0.999 * fRec5[1]));

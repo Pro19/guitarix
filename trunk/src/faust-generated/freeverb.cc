@@ -6,11 +6,11 @@ namespace freeverb {
 
 class Dsp: public PluginDef {
 private:
-	int fSampleRate;
+	int fSamplingFreq;
 	FAUSTFLOAT fVslider0;
 	FAUSTFLOAT fVslider1;
-	FAUSTFLOAT fVslider2;
 	double fRec9[2];
+	FAUSTFLOAT fVslider2;
 	int IOTA;
 	double fVec0[2048];
 	double fRec8[2];
@@ -47,13 +47,13 @@ private:
 	void clear_state_f();
 	int load_ui_f(const UiBuilder& b, int form);
 	static const char *glade_def;
-	void init(unsigned int sample_rate);
+	void init(unsigned int samplingFreq);
 	void compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0);
 	int register_par(const ParamReg& reg);
 
 	static void clear_state_f_static(PluginDef*);
 	static int load_ui_f_static(const UiBuilder& b, int form);
-	static void init_static(unsigned int sample_rate, PluginDef*);
+	static void init_static(unsigned int samplingFreq, PluginDef*);
 	static void compute_static(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0, PluginDef*);
 	static int register_params_static(const ParamReg& reg);
 	static void del_instance(PluginDef *p);
@@ -128,53 +128,53 @@ void Dsp::clear_state_f_static(PluginDef *p)
 	static_cast<Dsp*>(p)->clear_state_f();
 }
 
-inline void Dsp::init(unsigned int sample_rate)
+inline void Dsp::init(unsigned int samplingFreq)
 {
-	fSampleRate = sample_rate;
+	fSamplingFreq = samplingFreq;
 	IOTA = 0;
 	clear_state_f();
 }
 
-void Dsp::init_static(unsigned int sample_rate, PluginDef *p)
+void Dsp::init_static(unsigned int samplingFreq, PluginDef *p)
 {
-	static_cast<Dsp*>(p)->init(sample_rate);
+	static_cast<Dsp*>(p)->init(samplingFreq);
 }
 
 void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0)
 {
-	double fSlow0 = double(fVslider0);
-	double fSlow1 = (0.00014999999999999999 * fSlow0);
-	double fSlow2 = ((0.28000000000000003 * double(fVslider1)) + 0.69999999999999996);
+	double fSlow0 = ((0.28000000000000003 * double(fVslider0)) + 0.69999999999999996);
+	double fSlow1 = double(fVslider1);
+	double fSlow2 = (1.0 - fSlow1);
 	double fSlow3 = double(fVslider2);
-	double fSlow4 = (1.0 - fSlow3);
-	double fSlow5 = (1.0 - (0.01 * fSlow0));
-	double fSlow6 = (fSlow5 + (fSlow0 * ((0.01 * fSlow5) + 0.00014999999999999999)));
+	double fSlow4 = (0.00014999999999999999 * fSlow3);
+	double fSlow5 = (1.0 - (0.01 * fSlow3));
+	double fSlow6 = (fSlow5 + (((0.01 * fSlow5) + 0.00014999999999999999) * fSlow3));
 	for (int i = 0; (i < count); i = (i + 1)) {
+		fRec9[0] = ((fSlow1 * fRec9[1]) + (fSlow2 * fRec8[1]));
 		double fTemp0 = double(input0[i]);
-		double fTemp1 = (fSlow1 * fTemp0);
-		fRec9[0] = ((fSlow3 * fRec9[1]) + (fSlow4 * fRec8[1]));
-		fVec0[(IOTA & 2047)] = (fTemp1 + (fSlow2 * fRec9[0]));
+		double fTemp1 = (fSlow4 * fTemp0);
+		fVec0[(IOTA & 2047)] = ((fSlow0 * fRec9[0]) + fTemp1);
 		fRec8[0] = fVec0[((IOTA - 1139) & 2047)];
-		fRec11[0] = ((fSlow3 * fRec11[1]) + (fSlow4 * fRec10[1]));
-		fVec1[(IOTA & 2047)] = (fTemp1 + (fSlow2 * fRec11[0]));
+		fRec11[0] = ((fSlow1 * fRec11[1]) + (fSlow2 * fRec10[1]));
+		fVec1[(IOTA & 2047)] = (fTemp1 + (fSlow0 * fRec11[0]));
 		fRec10[0] = fVec1[((IOTA - 1211) & 2047)];
-		fRec13[0] = ((fSlow3 * fRec13[1]) + (fSlow4 * fRec12[1]));
-		fVec2[(IOTA & 2047)] = (fTemp1 + (fSlow2 * fRec13[0]));
+		fRec13[0] = ((fSlow1 * fRec13[1]) + (fSlow2 * fRec12[1]));
+		fVec2[(IOTA & 2047)] = (fTemp1 + (fSlow0 * fRec13[0]));
 		fRec12[0] = fVec2[((IOTA - 1300) & 2047)];
-		fRec15[0] = ((fSlow3 * fRec15[1]) + (fSlow4 * fRec14[1]));
-		fVec3[(IOTA & 2047)] = (fTemp1 + (fSlow2 * fRec15[0]));
+		fRec15[0] = ((fSlow1 * fRec15[1]) + (fSlow2 * fRec14[1]));
+		fVec3[(IOTA & 2047)] = (fTemp1 + (fSlow0 * fRec15[0]));
 		fRec14[0] = fVec3[((IOTA - 1379) & 2047)];
-		fRec17[0] = ((fSlow3 * fRec17[1]) + (fSlow4 * fRec16[1]));
-		fVec4[(IOTA & 2047)] = (fTemp1 + (fSlow2 * fRec17[0]));
+		fRec17[0] = ((fSlow1 * fRec17[1]) + (fSlow2 * fRec16[1]));
+		fVec4[(IOTA & 2047)] = (fTemp1 + (fSlow0 * fRec17[0]));
 		fRec16[0] = fVec4[((IOTA - 1445) & 2047)];
-		fRec19[0] = ((fSlow3 * fRec19[1]) + (fSlow4 * fRec18[1]));
-		fVec5[(IOTA & 2047)] = (fTemp1 + (fSlow2 * fRec19[0]));
+		fRec19[0] = ((fSlow1 * fRec19[1]) + (fSlow2 * fRec18[1]));
+		fVec5[(IOTA & 2047)] = (fTemp1 + (fSlow0 * fRec19[0]));
 		fRec18[0] = fVec5[((IOTA - 1514) & 2047)];
-		fRec21[0] = ((fSlow3 * fRec21[1]) + (fSlow4 * fRec20[1]));
-		fVec6[(IOTA & 2047)] = (fTemp1 + (fSlow2 * fRec21[0]));
+		fRec21[0] = ((fSlow1 * fRec21[1]) + (fSlow2 * fRec20[1]));
+		fVec6[(IOTA & 2047)] = (fTemp1 + (fSlow0 * fRec21[0]));
 		fRec20[0] = fVec6[((IOTA - 1580) & 2047)];
-		fRec23[0] = ((fSlow3 * fRec23[1]) + (fSlow4 * fRec22[1]));
-		fVec7[(IOTA & 2047)] = (fTemp1 + (fSlow2 * fRec23[0]));
+		fRec23[0] = ((fSlow1 * fRec23[1]) + (fSlow2 * fRec22[1]));
+		fVec7[(IOTA & 2047)] = (fTemp1 + (fSlow0 * fRec23[0]));
 		fRec22[0] = fVec7[((IOTA - 1640) & 2047)];
 		double fTemp2 = (((((((fRec8[0] + fRec10[0]) + fRec12[0]) + fRec14[0]) + fRec16[0]) + fRec18[0]) + fRec20[0]) + fRec22[0]);
 		fVec8[(IOTA & 1023)] = (fTemp2 + (0.5 * fRec6[1]));
@@ -221,9 +221,9 @@ void __rt_func Dsp::compute_static(int count, FAUSTFLOAT *input0, FAUSTFLOAT *ou
 
 int Dsp::register_par(const ParamReg& reg)
 {
-	reg.registerFloatVar("freeverb.RoomSize",N_("Room Size"),"S","",&fVslider1, 0.5, 0.0, 1.0, 0.025000000000000001, 0);
-	reg.registerFloatVar("freeverb.damp",N_("HF Damp"),"S","",&fVslider2, 0.5, 0.0, 1.0, 0.025000000000000001, 0);
-	reg.registerFloatVar("freeverb.wet_dry",N_("Wet/Dry"),"S","",&fVslider0, 50.0, 0.0, 100.0, 1.0, 0);
+	reg.registerFloatVar("freeverb.RoomSize",N_("Room Size"),"S","",&fVslider0, 0.5, 0.0, 1.0, 0.025000000000000001, 0);
+	reg.registerFloatVar("freeverb.damp",N_("HF Damp"),"S","",&fVslider1, 0.5, 0.0, 1.0, 0.025000000000000001, 0);
+	reg.registerFloatVar("freeverb.wet_dry",N_("Wet/Dry"),"S","",&fVslider2, 50.0, 0.0, 100.0, 1.0, 0);
 	return 0;
 }
 

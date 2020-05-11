@@ -6,7 +6,7 @@ namespace hogsfoot {
 
 class Dsp: public PluginLV2 {
 private:
-	uint32_t fSampleRate;
+	uint32_t fSamplingFreq;
 	FAUSTFLOAT fVslider0;
 	FAUSTFLOAT	*fVslider0_;
 	double fConst0;
@@ -25,11 +25,11 @@ private:
 
 	void connect(uint32_t port,void* data);
 	void clear_state_f();
-	void init(uint32_t sample_rate);
+	void init(uint32_t samplingFreq);
 	void compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0);
 
 	static void clear_state_f_static(PluginLV2*);
-	static void init_static(uint32_t sample_rate, PluginLV2*);
+	static void init_static(uint32_t samplingFreq, PluginLV2*);
 	static void compute_static(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0, PluginLV2*);
 	static void del_instance(PluginLV2 *p);
 	static void connect_static(uint32_t port,void* data, PluginLV2 *p);
@@ -68,24 +68,24 @@ void Dsp::clear_state_f_static(PluginLV2 *p)
 	static_cast<Dsp*>(p)->clear_state_f();
 }
 
-inline void Dsp::init(uint32_t sample_rate)
+inline void Dsp::init(uint32_t samplingFreq)
 {
-	fSampleRate = sample_rate;
-	fConst0 = std::min<double>(192000.0, std::max<double>(1.0, double(fSampleRate)));
+	fSamplingFreq = samplingFreq;
+	fConst0 = std::min<double>(192000.0, std::max<double>(1.0, double(fSamplingFreq)));
 	fConst1 = (8.9388784767912697e-15 * fConst0);
-	fConst2 = ((fConst0 * ((fConst0 * (fConst1 + 4.9610614570897104e-12)) + 2.63723081667839e-11)) + 2.6773044958149099e-11);
+	fConst2 = (((((fConst1 + 4.9610614570897104e-12) * fConst0) + 2.63723081667839e-11) * fConst0) + 2.6773044958149099e-11);
 	fConst3 = (mydsp_faustpower2_f(fConst0) / fConst2);
 	fConst4 = (1.0 / fConst2);
 	fConst5 = (2.6816635430373801e-14 * fConst0);
-	fConst6 = ((fConst0 * ((fConst0 * (-4.9610614570897104e-12 - fConst5)) + 2.63723081667839e-11)) + 8.0319134874447397e-11);
-	fConst7 = ((fConst0 * ((fConst0 * (fConst5 + -4.9610614570897104e-12)) + -2.63723081667839e-11)) + 8.0319134874447397e-11);
-	fConst8 = ((fConst0 * ((fConst0 * (4.9610614570897104e-12 - fConst1)) + -2.63723081667839e-11)) + 2.6773044958149099e-11);
+	fConst6 = (((((-4.9610614570897104e-12 - fConst5) * fConst0) + 2.63723081667839e-11) * fConst0) + 8.0319134874447397e-11);
+	fConst7 = (((((fConst5 + -4.9610614570897104e-12) * fConst0) + -2.63723081667839e-11) * fConst0) + 8.0319134874447397e-11);
+	fConst8 = (((((4.9610614570897104e-12 - fConst1) * fConst0) + -2.63723081667839e-11) * fConst0) + 2.6773044958149099e-11);
 	clear_state_f();
 }
 
-void Dsp::init_static(uint32_t sample_rate, PluginLV2 *p)
+void Dsp::init_static(uint32_t samplingFreq, PluginLV2 *p)
 {
-	static_cast<Dsp*>(p)->init(sample_rate);
+	static_cast<Dsp*>(p)->init(samplingFreq);
 }
 
 void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0)

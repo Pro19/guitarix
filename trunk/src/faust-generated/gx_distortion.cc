@@ -6,7 +6,7 @@ namespace gx_distortion {
 
 class Dsp: public PluginDef {
 private:
-	int fSampleRate;
+	int fSamplingFreq;
 	double fConst0;
 	double fConst1;
 	double fConst2;
@@ -75,13 +75,13 @@ private:
 
 	void clear_state_f();
 	int load_ui_f(const UiBuilder& b, int form);
-	void init(unsigned int sample_rate);
+	void init(unsigned int samplingFreq);
 	void compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0);
 	int register_par(const ParamReg& reg);
 
 	static void clear_state_f_static(PluginDef*);
 	static int load_ui_f_static(const UiBuilder& b, int form);
-	static void init_static(unsigned int sample_rate, PluginDef*);
+	static void init_static(unsigned int samplingFreq, PluginDef*);
 	static void compute_static(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0, PluginDef*);
 	static int register_params_static(const ParamReg& reg);
 	static void del_instance(PluginDef *p);
@@ -160,10 +160,10 @@ void Dsp::clear_state_f_static(PluginDef *p)
 	static_cast<Dsp*>(p)->clear_state_f();
 }
 
-inline void Dsp::init(unsigned int sample_rate)
+inline void Dsp::init(unsigned int samplingFreq)
 {
-	fSampleRate = sample_rate;
-	fConst0 = std::min<double>(192000.0, std::max<double>(1.0, double(fSampleRate)));
+	fSamplingFreq = samplingFreq;
+	fConst0 = std::min<double>(192000.0, std::max<double>(1.0, double(fSamplingFreq)));
 	fConst1 = (1.0 / std::tan((20517.741620594938 / fConst0)));
 	fConst2 = (1.0 / (fConst1 + 1.0));
 	fConst3 = (1.0 - fConst1);
@@ -174,7 +174,7 @@ inline void Dsp::init(unsigned int sample_rate)
 	fConst8 = std::tan((97.389372261283583 / fConst0));
 	fConst9 = (1.0 / fConst8);
 	fConst10 = (fConst9 + 1.0);
-	fConst11 = (1.0 / (fConst8 * fConst10));
+	fConst11 = (1.0 / (fConst10 * fConst8));
 	fConst12 = (((fConst6 + -1.4142135623730949) / fConst5) + 1.0);
 	fConst13 = (2.0 * (1.0 - (1.0 / mydsp_faustpower2_f(fConst5))));
 	fConst14 = (0.0 - fConst11);
@@ -182,17 +182,17 @@ inline void Dsp::init(unsigned int sample_rate)
 	clear_state_f();
 }
 
-void Dsp::init_static(unsigned int sample_rate, PluginDef *p)
+void Dsp::init_static(unsigned int samplingFreq, PluginDef *p)
 {
-	static_cast<Dsp*>(p)->init(sample_rate);
+	static_cast<Dsp*>(p)->init(samplingFreq);
 }
 
 void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0)
 {
 	double fSlow0 = (0.0010000000000000009 * std::pow(10.0, (0.050000000000000003 * (double(fVslider0) + -10.0))));
 	double fSlow1 = double(fVslider1);
-	double fSlow2 = double(fVslider2);
-	double fSlow3 = std::pow(10.0, (2.0 * (fSlow2 * double(fVslider3))));
+	double fSlow2 = double(fVslider3);
+	double fSlow3 = std::pow(10.0, (2.0 * (double(fVslider2) * fSlow2)));
 	double fSlow4 = std::tan((fConst4 * double(fEntry0)));
 	double fSlow5 = (1.0 / fSlow4);
 	double fSlow6 = (((fSlow5 + 1.0000000000000004) / fSlow4) + 1.0);
@@ -200,7 +200,7 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *outpu
 	double fSlow8 = mydsp_faustpower2_f(fSlow4);
 	double fSlow9 = (1.0 / fSlow8);
 	double fSlow10 = (fSlow5 + 1.0);
-	double fSlow11 = (0.0 - (1.0 / (fSlow4 * fSlow10)));
+	double fSlow11 = (0.0 - (1.0 / (fSlow10 * fSlow4)));
 	int iSlow12 = int(double(fCheckbox0));
 	double fSlow13 = (0.01 * double(fVslider4));
 	double fSlow14 = (1.0 - double(fVslider5));
@@ -236,7 +236,7 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *outpu
 	double fSlow44 = (1.0 / fSlow43);
 	double fSlow45 = (0.0 - (1.0 / (fSlow23 * fSlow25)));
 	double fSlow46 = (1.0 / fSlow25);
-	double fSlow47 = (1.0 / (fSlow23 * fSlow6));
+	double fSlow47 = (1.0 / (fSlow6 * fSlow23));
 	double fSlow48 = (((fSlow24 + -1.0000000000000004) / fSlow23) + 1.0);
 	double fSlow49 = (0.0 - (2.0 / fSlow29));
 	double fSlow50 = (0.0010000000000000009 * std::pow(10.0, (0.050000000000000003 * (double(fVslider9) + -10.0))));
@@ -244,7 +244,7 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *outpu
 	double fSlow52 = (std::pow(10.0, (2.0 * (fSlow2 * double(fVslider10)))) / fSlow51);
 	double fSlow53 = (0.0 - (1.0 / (fSlow32 * fSlow34)));
 	double fSlow54 = (1.0 / fSlow34);
-	double fSlow55 = (1.0 / (fSlow32 * fSlow43));
+	double fSlow55 = (1.0 / (fSlow43 * fSlow32));
 	double fSlow56 = (1.0 / fSlow51);
 	double fSlow57 = (((fSlow33 + -1.0000000000000004) / fSlow32) + 1.0);
 	double fSlow58 = (0.0 - (2.0 / fSlow38));
@@ -261,7 +261,7 @@ void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *outpu
 		double fTemp2 = (fTemp1 + (fSlow14 * fRec9[1]));
 		fVec1[0] = fTemp2;
 		fRec9[0] = (0.5 * (fVec1[iSlow16] + fVec1[iSlow17]));
-		fRec7[0] = ((fRec8[0] + (iSlow12 ? fRec9[0] : fTemp1)) - (fConst7 * ((fConst12 * fRec7[2]) + (fConst13 * fRec7[1]))));
+		fRec7[0] = ((fRec8[0] + (iSlow12?fRec9[0]:fTemp1)) - (fConst7 * ((fConst12 * fRec7[2]) + (fConst13 * fRec7[1]))));
 		double fTemp3 = (fRec7[2] + (fRec7[0] + (2.0 * fRec7[1])));
 		fVec2[0] = fTemp3;
 		fRec6[0] = ((fConst7 * ((fConst11 * fTemp3) + (fConst14 * fVec2[1]))) - (fConst15 * fRec6[1]));
@@ -352,9 +352,9 @@ void __rt_func Dsp::compute_static(int count, FAUSTFLOAT *input0, FAUSTFLOAT *ou
 
 int Dsp::register_par(const ParamReg& reg)
 {
-	reg.registerFloatVar("gx_distortion.drive",N_("Drive"),"S","",&fVslider2, 0.64000000000000001, 0.0, 1.0, 0.01, 0);
+	reg.registerFloatVar("gx_distortion.drive",N_("Drive"),"S","",&fVslider3, 0.64000000000000001, 0.0, 1.0, 0.01, 0);
 	reg.registerFloatVar("gx_distortion.gain",N_("Gain"),"S","",&fVslider13, 2.0, -10.0, 10.0, 0.10000000000000001, 0);
-	reg.registerFloatVar("gx_distortion.high_drive",N_("Hi"),"S","",&fVslider3, 1.0, 0.0, 1.0, 0.01, 0);
+	reg.registerFloatVar("gx_distortion.high_drive",N_("Hi"),"S","",&fVslider2, 1.0, 0.0, 1.0, 0.01, 0);
 	reg.registerFloatVar("gx_distortion.high_gain",N_("Hi"),"S","",&fVslider0, 10.0, -10.0, 20.0, 0.10000000000000001, 0);
 	reg.registerFloatVar("gx_distortion.level",N_("Level"),"S","",&fVslider1, 0.0, 0.0, 0.5, 0.01, 0);
 	reg.registerFloatVar("gx_distortion.low_drive",N_("Lo"),"S","",&fVslider12, 1.0, 0.0, 1.0, 0.01, 0);
