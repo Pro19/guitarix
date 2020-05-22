@@ -51,12 +51,19 @@ wow =  sine( freq) * depth ;
 speed = ( 72/(2*bpm))  ;
 tapespeed = hgroup( "Tape Control",speed + wow ); 
 
-echo = hgroup( "Echo", vslider("Swell[style:knob]", 0, 0, 1, 0.01)) ;
-feedback = hgroup( "Echo", vslider("Sustain[style:knob]", 0, 0.0, 0.95, 0.01));
+LogPot(a, x) = ba.if(a, (exp(a * x) - 1) / (exp(a) - 1), x);
+s = 0.993;
 
-dtime1 = ma.SR*( 60/bpm) ;
-dtime2 = ma.SR*( 120/ bpm) ;
-dtime3 = ma.SR*( 180/bpm ) ;
+echo = hgroup( "Echo", vslider("Swell[style:knob]", 0, 0, 1, 0.01)): LogPot(1):si.smooth(s):*(0.25) ;
+feedback = hgroup( "Echo", vslider("Sustain[style:knob]", 0, 0.0, 1.0, 0.01)):LogPot(1):si.smooth(s):*(0.25);
+
+// Play with delays to get following ranges 
+// 83.33ms => 1.25s on head1 
+// 166.6ms => 2.5s on head1 
+// 250ms => 3.75s on head1 
+dtime1 = ma.SR*( 30/bpm) ;
+dtime2 = ma.SR*( 60/ bpm) ;
+dtime3 = ma.SR*( 90/bpm ) ;
 dtime4 = ma.SR*( 240/bpm ) ;
 
 head1 = de.sdelay(N, interp, dtime1):*(checkbox("Head1")) with {
@@ -85,7 +92,8 @@ input = pre : fi.iir((b0/a0,b1/a0,b2/a0),(a1/a0,a2/a0)) : copicat1clip with {
     pre = _;
 
 
-    Input = vslider("Input[name:Input]", 0.5, 0, 1, 0.01) : Inverted(0) : LogPot(3) : si.smooth(s);
+//    Input = vslider("Input[name:Input]", 0.5, 0, 1, 0.01) : Inverted(0) : LogPot(3) : si.smooth(s);
+    Input = vslider("Input[name:Input]", 0.5, 0, 1, 0.01) : si.smooth(s);
 
     b0 = Input*fs*(-2.06740841499587e-8*fs - 5.51308910665569e-7);
 
@@ -173,7 +181,7 @@ copicatreplay1clip = _<: ba.if(signbit(_), copicatreplay1_neg_clip, copicatrepla
     copicatreplay1_neg_clip = ffunction(float copicatreplay1_negclip(float), "copicatreplay1_neg_table.h", "");
 
 };
-replay2 = pre : fi.iir((b0/a0,b1/a0,b2/a0,b3/a0),(a1/a0,a2/a0,a3/a0)) : copicatreplay2clip with {
+replay2 =  pre : fi.iir((b0/a0,b1/a0,b2/a0),(a1/a0,a2/a0)) : copicatreplay2clip with {
     LogPot(a, x) = ba.if(a, (exp(a * x) - 1) / (exp(a) - 1), x);
     Inverted(b, x) = ba.if(b, 1 - x, x);
     s = 0.993;
@@ -181,22 +189,19 @@ replay2 = pre : fi.iir((b0/a0,b1/a0,b2/a0,b3/a0),(a1/a0,a2/a0,a3/a0)) : copicatr
     pre = _;
 
 
-    b0 = fs*(fs*(-2.1232182495002e-14*fs - 4.5394197100599e-11) - 4.66682400540757e-10);
+    b0 = fs*(-1.02325156488485e-9*fs - 1.05707806289759e-8);
 
-    b1 = fs*(fs*(6.36965474850061e-14*fs + 4.5394197100599e-11) - 4.66682400540757e-10);
+    b1 = 2.0465031297697e-9*pow(fs,2);
 
-    b2 = fs*(fs*(-6.36965474850061e-14*fs + 4.5394197100599e-11) + 4.66682400540757e-10);
+    b2 = fs*(-1.02325156488485e-9*fs + 1.05707806289759e-8);
 
-    b3 = fs*(fs*(2.1232182495002e-14*fs - 4.5394197100599e-11) + 4.66682400540757e-10);
+    a0 = fs*(4.3361242466424e-10*fs + 1.99329936161353e-8) + 1.89880017035189e-7;
 
-    a0 = fs*(fs*(8.99733599098619e-15*fs + 2.15390111438293e-12) + 8.39407340833474e-11) + 7.62080659155505e-10;
+    a1 = -8.6722484932848e-10*pow(fs,2) + 3.79760034070379e-7;
 
-    a1 = fs*(fs*(-2.69920079729586e-14*fs - 2.15390111438293e-12) + 8.39407340833474e-11) + 2.28624197746652e-9;
-
-    a2 = fs*(fs*(2.69920079729586e-14*fs - 2.15390111438293e-12) - 8.39407340833474e-11) + 2.28624197746652e-9;
-
-    a3 = fs*(fs*(-8.99733599098619e-15*fs + 2.15390111438293e-12) - 8.39407340833474e-11) + 7.62080659155505e-10;
+    a2 = fs*(4.3361242466424e-10*fs - 1.99329936161353e-8) + 1.89880017035189e-7;
 };
+
 
 copicatreplay2clip = _<: ba.if(signbit(_), copicatreplay2_neg_clip, copicatreplay2_clip) :>_ with {
 
@@ -212,12 +217,9 @@ copicatreplay2clip = _<: ba.if(signbit(_), copicatreplay2_neg_clip, copicatrepla
 machine = record:vgroup( "Tape Heads", fi.highpass( 4, 40 )<:head1,head2,head3:>fi.lowpass( 1, 6500 ):fi.dcblocker ):replay1:replay2;
 
 // May need to look at levels here
-fbloop = fi.lowpass( 1, 7500 ):*(feedback):*(0.25):fi.highpass( 1, 150 )  ;
-LogPot(a, x) = ba.if(a, (exp(a * x) - 1) / (exp(a) - 1), x);
-s = 0.993;
+fbloop = fi.lowpass( 1, 7500 ):*(feedback):fi.highpass( 1, 150 )  ;
 
-
-Output = vslider("Output[name:Output]", 1.0, 0.0, 4.0, 0.01) : LogPot(3) : si.smooth(s);
+Output = vslider("Output[name:Output]", 1.0, 0.0, 2.0, 0.01) : LogPot(3) : si.smooth(s);
 
 amp = input<:_,((+:_<:machine :>_)~fbloop:*(echo)):>*(Output) ;
 
