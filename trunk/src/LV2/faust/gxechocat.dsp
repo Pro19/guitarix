@@ -55,7 +55,7 @@ LogPot(a, x) = ba.if(a, (exp(a * x) - 1) / (exp(a) - 1), x);
 s = 0.993;
 
 echo = hgroup( "Echo", vslider("Swell[style:knob]", 0, 0, 1, 0.01)): LogPot(1):si.smooth(s):*(0.25) ;
-feedback = hgroup( "Echo", vslider("Sustain[style:knob]", 0, 0.0, 1.0, 0.01)):LogPot(1):si.smooth(s):*(0.25);
+feedback = hgroup( "Echo", vslider("Sustain[style:knob]", 0, 0.0, 1.0, 0.01)):LogPot(3):si.smooth(s):*(0.2);
 
 // Play with delays to get following ranges 
 // 83.33ms => 1.25s on head1 
