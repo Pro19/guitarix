@@ -30,11 +30,12 @@
 
 typedef enum
 {
-  INPUT,
-  BASS,
-  MIDDLE,
-  TREBLE,
-  VOLUME,
+  BRIGHT_L,
+  VOLUME_L,
+  BASS_L,
+  MIDDLE_L,
+  TREBLE_L,
+  MASTER_L,
   EFFECTS_OUTPUT,
   EFFECTS_INPUT,
 } PortIndex;
